@@ -1,49 +1,38 @@
 # 蟳埔花事 · 城市礼物
 
-> 泉州非遗文创品牌「蟳埔花事」的完整站点：12 个前台页面、顾客账号、购物袋与订单、询价、管理后台。
-> Node.js 22 + 内置 SQLite，**零 npm 依赖**，克隆下来就能跑。
+泉州非遗文创品牌「蟳埔花事」的完整站点：6 件文创单品、12 个前台页面、顾客账号、购物袋与订单、询价、管理后台。前后端一体，**零 npm 依赖**，只用 Node.js 内置模块（`node:http` + `node:sqlite` + `node:crypto`）。
 
 [![Node](https://img.shields.io/badge/Node.js-%E2%89%A522.5-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 [![test](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml/badge.svg)](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml)
 
-泉州城市礼物「蟳埔花事」站点（6 件文创单品）的**前后端一体**实现：商品目录、购物袋、订单、**顾客账号（注册 / 登录 / 我的订单）**、询价、管理后台、运营统计与数据清理。
-
-**零外部依赖** —— 只用 Node.js 内置模块（`node:http` + `node:sqlite` + `node:crypto`），不需要 `npm install`。一个进程同时提供 12 个前台页面和 `/api/*` 接口，不用起两个服务。
-
----
-
-## 快速开始
+## 一键启动
 
 ```bash
-# 需要 Node.js ≥ 22.5（内置 node:sqlite）
-node -v
-
-npm start
-# 或
-node --disable-warning=ExperimentalWarning server/index.js
+git clone https://github.com/iu6888/xunpu-blossom.git
+cd xunpu-blossom
 ```
 
-启动后：
+不想用 Git？在仓库页点 **Code → Download ZIP**，解压后同样操作。
+
+| 环境 | 做法 |
+|---|---|
+| Windows | 双击 `start.bat` |
+| macOS / Linux | `./start.sh` |
+| 已装 Docker | `docker compose up -d --build` |
+
+两个脚本会自动选路：有 Node.js 22.5+ 就直接跑，没有就用 Docker；两样都没有时会提示安装地址。首次启动自动建库，写入 6 件商品、16 个 SKU 和站点文案。
 
 | 入口 | 地址 |
 |---|---|
-| 站点（原有静态页 + 礼袋） | http://localhost:3000 |
+| 站点 | http://localhost:3000 |
 | 管理后台 | http://localhost:3000/admin/ |
-| 接口健康检查 | http://localhost:3000/api/health |
+| 健康检查 | http://localhost:3000/api/health |
 
-首次启动会**自动建库并写入初始数据**（6 件商品、16 个 SKU、站点文案、管理员账号），无需额外命令。
+默认管理员 `admin` / `xunpu2026`。
 
-默认管理员：
-
-```
-账号：admin
-密码：xunpu2026
-```
-
-> 上线前务必用环境变量改掉：`ADMIN_PASSWORD=你的强密码 npm start`（仅在首次建库时生效）。
-> 已建库后改密码请登录后台 → 设置 → 修改密码。
+> 上线前务必改密码：`ADMIN_PASSWORD=你的强密码 npm start`，或先写 `.env` 再 `docker compose up -d --build`（仅首次建库生效）。已建库请在后台「设置 → 修改密码」。
 
 ---
 
@@ -82,7 +71,8 @@ xunpu-blossom/
 
 几个实现细节：
 
-- `start.bat` 优先用 `runtime\node.exe`，找不到才用系统 Node，并校验版本 ≥ 22.5
+- `start.bat` 优先用 `runtime\node.exe`，找不到才用系统 Node，并校验版本 ≥ 22.5；两者都没有时自动改用 Docker
+- `start.sh` 在 macOS / Linux 上做同样的判断，Node 与 Docker 二选一
 - 会清空 `NODE_OPTIONS`，避免对方机器上某些开发工具全局注入 `--require` 导致启动失败
 - 批处理是 CRLF、脚本是 LF（`.gitattributes` 强制），避免在 Windows 上编辑后 Linux 跑不起来
 - 便携包附带 Node.js 的 LICENSE（MIT 协议再分发要求）
@@ -97,7 +87,8 @@ xunpu-blossom/
 ```
 xunpu-blossom/
 ├── 00-先看我.txt          # 交付包里的使用说明（非技术人员看这个）
-├── start.bat              # Windows 双击启动
+├── start.bat              # Windows 双击启动（Node 优先，没有则用 Docker）
+├── start.sh               # macOS / Linux 一键启动（同上）
 ├── index.html / collection.html / product-*.html   # 原有静态站点
 ├── account.html           # 顾客账户页（登录 / 注册 / 我的订单）
 ├── assets/
@@ -138,7 +129,7 @@ xunpu-blossom/
 ├── Dockerfile             # 生产镜像（node:22-slim，零依赖）
 ├── docker-compose.yml     # docker compose up -d --build
 ├── package.sh             # 打成服务器用 tar.gz
-├── test/api.test.js       # 32 项接口回归测试
+├── test/api.test.js       # 33 项接口回归测试
 └── data/                  # 运行时生成：xunpu.db + backups/
 ```
 
@@ -359,16 +350,17 @@ pending 待处理 ──┬──> confirmed 已确认 ──┬──> producin
 npm test
 ```
 
-32 项用例覆盖：商品与分类、购物袋合计与库存拦截、下单扣库存、幂等、订单查询鉴权、状态机跳级拦截、取消回滚、询价校验、CSV 导出、后台鉴权、顾客注册/登录/改密/我的订单、游客袋归并、越权隔离、后台客户管理、删除订单回滚库存、批量清理口令校验、静态资源边界。测试使用临时数据库与随机端口，不污染 `data/xunpu.db`。
+33 项用例覆盖：商品与分类、购物袋合计与库存拦截、下单扣库存、幂等、订单查询鉴权、状态机跳级拦截、取消回滚、询价校验、CSV 导出、后台鉴权、顾客注册/登录/改密/我的订单、游客袋归并、越权隔离、后台客户管理、删除订单回滚库存、批量清理口令校验、静态资源边界。测试使用临时数据库与随机端口，不污染 `data/xunpu.db`。
 
 ---
 
 ## 部署
 
-三种方式，按需选：
+四种方式，按需选：
 
 | 方式 | 适合 | 命令 |
 |---|---|---|
+| 本地一键 | Windows / macOS / Linux | `start.bat` 或 `./start.sh` |
 | 一键脚本 | 全新 Ubuntu / Debian 服务器 | `sudo bash deploy/install.sh --domain=你的域名` |
 | Docker | 已有 Docker 环境 | `docker compose up -d --build` |
 | 手动 | 已有自己的进程管理方案 | 见下方「手动部署」 |
