@@ -5,7 +5,7 @@
 [![Node](https://img.shields.io/badge/Node.js-%E2%89%A522.5-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
-[![Tests](https://img.shields.io/badge/tests-33%20passing-success)](test/api.test.js)
+[![test](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml/badge.svg)](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml)
 
 泉州城市礼物「蟳埔花事」站点（6 件文创单品）的完整后端：商品目录、购物袋、订单、**顾客账号（注册 / 登录 / 我的订单）**、询价、管理后台、运营统计与数据清理。
 
