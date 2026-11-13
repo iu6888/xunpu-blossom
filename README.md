@@ -1,22 +1,20 @@
-# 蟳埔花事 · 后端
+# 蟳埔花事 · 城市礼物
 
-> 一个非遗文创品牌站点的完整后端。Node.js 22 + 内置 SQLite，**零 npm 依赖**。
+> 泉州非遗文创品牌「蟳埔花事」的完整站点：12 个前台页面、顾客账号、购物袋与订单、询价、管理后台。
+> Node.js 22 + 内置 SQLite，**零 npm 依赖**，克隆下来就能跑。
 
 [![Node](https://img.shields.io/badge/Node.js-%E2%89%A522.5-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 [![test](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml/badge.svg)](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml)
-[![Release](https://img.shields.io/github/v/release/iu6888/xunpu-blossom)](https://github.com/iu6888/xunpu-blossom/releases/latest)
 
-泉州城市礼物「蟳埔花事」站点（6 件文创单品）的完整后端：商品目录、购物袋、订单、**顾客账号（注册 / 登录 / 我的订单）**、询价、管理后台、运营统计与数据清理。
+泉州城市礼物「蟳埔花事」站点（6 件文创单品）的**前后端一体**实现：商品目录、购物袋、订单、**顾客账号（注册 / 登录 / 我的订单）**、询价、管理后台、运营统计与数据清理。
 
-**零外部依赖** —— 只用 Node.js 内置模块（`node:http` + `node:sqlite` + `node:crypto`），不需要 `npm install`，克隆下来就能跑。
+**零外部依赖** —— 只用 Node.js 内置模块（`node:http` + `node:sqlite` + `node:crypto`），不需要 `npm install`。一个进程同时提供 12 个前台页面和 `/api/*` 接口，不用起两个服务。
 
 ---
 
 ## 快速开始
-
-不想拉代码的话，直接下打包好的 zip：[最新 Release](https://github.com/iu6888/xunpu-blossom/releases/latest)（约 250 KB，解压即用）。
 
 ```bash
 # 需要 Node.js ≥ 22.5（内置 node:sqlite）
@@ -160,7 +158,7 @@ xunpu-blossom/
 
 ---
 
-## 前端如何接上后端
+## 页面与接口如何对接
 
 站点不需要改造即可用。`assets/js/store.js` 做了**渐进增强**：
 

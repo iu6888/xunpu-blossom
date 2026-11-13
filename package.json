@@ -1,7 +1,7 @@
 {
   "name": "xunpu-blossom",
   "version": "1.0.0",
-  "description": "蟳埔花事 · 城市礼物站点后端（商品 / 购物袋 / 订单 / 询价 / 顾客账号 / 管理后台），零外部依赖，只用 Node.js 内置模块",
+  "description": "蟳埔花事 · 泉州非遗文创品牌站点（12 个前台页面 + 购物袋订单 + 顾客账号 + 询价 + 管理后台），前后端一体，零外部依赖，只用 Node.js 内置模块",
   "main": "server/index.js",
   "license": "MIT",
   "author": "蟳埔花事 (Xunpu Blossom)",
