@@ -1,0 +1,8 @@
+node_modules
+.git
+.tmp
+data
+*.log
+.env
+.env.local
+deploy/*.local

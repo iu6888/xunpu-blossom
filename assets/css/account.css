@@ -1,0 +1,384 @@
+/* 蟳埔花事 · 我的账户（顾客端）
+   与 store.css 配合：按钮与表单控件复用 .xb-btn / .xb-field */
+
+.acct-hero {
+  padding: 44px 0 10px;
+  border-bottom: 1px solid var(--line, rgba(36, 31, 26, .12));
+}
+
+.acct-hero__inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.acct-hero h1 {
+  font-family: var(--serif, "Songti SC", Georgia, serif);
+  font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+  line-height: 1.18;
+  margin: 10px 0 0;
+}
+
+.acct-hero p {
+  margin: 8px 0 0;
+  color: var(--ink-soft, #5C534A);
+  font-size: .9rem;
+  max-width: 46ch;
+}
+
+.acct-body { padding: 34px 0 70px; }
+
+/* ---------------- 登录 / 注册 ---------------- */
+
+.acct-auth {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+  gap: 48px;
+  align-items: start;
+}
+
+.acct-auth__intro .eyebrow { display: inline-block; }
+
+.acct-auth__points {
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 12px;
+}
+.acct-auth__points li {
+  display: grid;
+  grid-template-columns: 16px 1fr;
+  gap: 10px;
+  font-size: .84rem;
+  color: var(--ink-soft, #5C534A);
+  line-height: 1.65;
+}
+.acct-auth__points span:first-child {
+  color: var(--gold, #C9A24A);
+  font-family: var(--serif, serif);
+}
+
+.acct-card {
+  background: #FBF8F1;
+  border: 1px solid var(--line, rgba(36, 31, 26, .13));
+  border-radius: 3px;
+  padding: 26px 24px 24px;
+}
+
+.acct-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--line-soft, rgba(36, 31, 26, .09));
+}
+.acct-tabs button {
+  position: relative;
+  padding: 8px 14px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-mute, #8A8074);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+  transition: color .16s ease;
+}
+.acct-tabs button:hover { color: var(--ink, #241F1A); }
+.acct-tabs button.is-active { color: var(--ink, #241F1A); }
+.acct-tabs button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 14px; right: 14px; bottom: -1px;
+  height: 2px;
+  background: var(--red, #A8342B);
+}
+
+.acct-form { display: grid; gap: 12px; }
+.acct-form .xb-field > span { font-size: .74rem; }
+
+.acct-form__hint {
+  margin: 2px 0 0;
+  font-size: .72rem;
+  color: var(--ink-mute, #8A8074);
+  line-height: 1.6;
+}
+
+.acct-form__submit { margin-top: 6px; }
+
+.acct-alert {
+  margin: 0;
+  padding: 9px 12px;
+  border-left: 2px solid var(--red, #A8342B);
+  background: rgba(168, 52, 43, .08);
+  color: #8C2A23;
+  font-size: .8rem;
+  line-height: 1.6;
+}
+.acct-alert[hidden] { display: none; }
+.acct-alert--ok {
+  border-left-color: var(--jade, #4C6157);
+  background: rgba(76, 97, 87, .09);
+  color: #33453C;
+}
+
+.acct-switch {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line-soft, rgba(36, 31, 26, .08));
+  font-size: .78rem;
+  color: var(--ink-mute, #8A8074);
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.acct-switch button {
+  border: 0; background: transparent; padding: 0;
+  color: var(--red, #A8342B);
+  font: inherit; font-size: .78rem;
+  text-decoration: underline; text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ---------------- 已登录 ---------------- */
+
+.acct-grid {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.acct-profile { position: sticky; top: 96px; }
+
+.acct-avatar {
+  width: 54px; height: 54px;
+  border-radius: 50%;
+  border: 1px solid var(--red, #A8342B);
+  color: var(--red, #A8342B);
+  display: grid; place-items: center;
+  font-family: var(--serif, "Songti SC", serif);
+  font-size: 1.2rem;
+  margin-bottom: 14px;
+}
+
+.acct-profile__name {
+  font-family: var(--serif, "Songti SC", Georgia, serif);
+  font-size: 1.25rem;
+  line-height: 1.3;
+}
+.acct-profile__meta {
+  font-size: .76rem;
+  color: var(--ink-mute, #8A8074);
+  margin-top: 4px;
+  letter-spacing: .04em;
+}
+
+.acct-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  margin: 18px 0;
+  background: var(--line-soft, rgba(36, 31, 26, .09));
+  border: 1px solid var(--line-soft, rgba(36, 31, 26, .09));
+}
+.acct-stats > div {
+  background: #FBF8F1;
+  padding: 12px 14px;
+}
+.acct-stats dt {
+  font-size: .7rem;
+  color: var(--ink-mute, #8A8074);
+  letter-spacing: .08em;
+}
+.acct-stats dd {
+  margin: 3px 0 0;
+  font-family: var(--serif, "Songti SC", serif);
+  font-size: 1.28rem;
+}
+
+.acct-menu {
+  display: grid;
+  gap: 2px;
+  margin-top: 6px;
+}
+.acct-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 9px 10px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--ink-soft, #5C534A);
+  font: inherit;
+  font-size: .84rem;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all .14s ease;
+}
+.acct-menu button:hover { background: rgba(36, 31, 26, .045); color: var(--ink, #241F1A); }
+.acct-menu button.is-active {
+  background: rgba(168, 52, 43, .07);
+  border-left-color: var(--red, #A8342B);
+  color: var(--red-deep, #8C2A23);
+}
+.acct-menu .acct-menu__n {
+  font-size: .7rem;
+  color: var(--ink-mute, #8A8074);
+}
+
+/* ---------------- 面板 ---------------- */
+
+.acct-panel { min-width: 0; }
+
+.acct-panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line, rgba(36, 31, 26, .12));
+}
+.acct-panel__head h2 {
+  font-family: var(--serif, "Songti SC", Georgia, serif);
+  font-size: 1.2rem;
+  margin: 0;
+}
+.acct-panel__head span { font-size: .76rem; color: var(--ink-mute, #8A8074); }
+
+/* 订单条目 */
+
+.acct-order {
+  border: 1px solid var(--line, rgba(36, 31, 26, .13));
+  border-radius: 3px;
+  background: #FBF8F1;
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+
+.acct-order__head {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+}
+.acct-order__no {
+  font-variant-numeric: tabular-nums;
+  font-size: .8rem;
+  letter-spacing: .04em;
+}
+.acct-order__time { font-size: .72rem; color: var(--ink-mute, #8A8074); margin-top: 2px; }
+.acct-order__right { text-align: right; }
+.acct-order__total {
+  font-family: var(--serif, "Songti SC", serif);
+  font-size: 1.05rem;
+  margin-top: 3px;
+}
+
+.acct-chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 10px;
+  font-size: .68rem;
+  letter-spacing: .04em;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+.acct-chip--pending { background: rgba(201,162,74,.16); color: #7A5C15; border-color: rgba(201,162,74,.35); }
+.acct-chip--confirmed { background: rgba(76,97,87,.13); color: #4C6157; border-color: rgba(76,97,87,.3); }
+.acct-chip--producing { background: rgba(76,97,87,.2); color: #33453C; border-color: rgba(76,97,87,.38); }
+.acct-chip--shipped { background: rgba(36,31,26,.1); color: #241F1A; border-color: rgba(36,31,26,.16); }
+.acct-chip--completed { background: rgba(76,97,87,.09); color: #3C4E45; border-color: rgba(76,97,87,.18); }
+.acct-chip--cancelled { background: rgba(138,128,116,.13); color: #8A8074; border-color: rgba(138,128,116,.25); }
+
+.acct-order__body {
+  display: none;
+  border-top: 1px solid var(--line-soft, rgba(36, 31, 26, .08));
+  padding: 4px 16px 14px;
+  background: var(--paper, #F3EEE4);
+}
+.acct-order.is-open .acct-order__body { display: block; }
+
+.acct-item {
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line-soft, rgba(36, 31, 26, .07));
+}
+.acct-item:last-child { border-bottom: 0; }
+.acct-item img {
+  width: 44px; height: 44px;
+  object-fit: contain;
+  background: #EDE6D8;
+  border-radius: 2px;
+}
+.acct-item__name { font-size: .84rem; }
+.acct-item__meta { font-size: .72rem; color: var(--ink-mute, #8A8074); margin-top: 2px; }
+.acct-item__amount { font-size: .84rem; font-variant-numeric: tabular-nums; }
+
+.acct-order__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line-soft, rgba(36, 31, 26, .07));
+  font-size: .76rem;
+  color: var(--ink-soft, #5C534A);
+}
+
+.acct-empty {
+  padding: 54px 20px;
+  text-align: center;
+  border: 1px dashed var(--line, rgba(36, 31, 26, .16));
+  border-radius: 3px;
+  color: var(--ink-mute, #8A8074);
+}
+.acct-empty h3 {
+  font-family: var(--serif, "Songti SC", serif);
+  font-size: 1.05rem;
+  color: var(--ink, #241F1A);
+  margin: 0 0 6px;
+}
+.acct-empty p { margin: 0 0 16px; font-size: .84rem; }
+
+.acct-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.acct-note {
+  margin-top: 14px;
+  padding: 12px 14px;
+  background: rgba(201, 162, 74, .1);
+  border-left: 2px solid var(--gold, #C9A24A);
+  font-size: .78rem;
+  line-height: 1.7;
+  color: var(--ink-soft, #5C534A);
+}
+
+/* ---------------- 响应式 ---------------- */
+
+@media (max-width: 900px) {
+  .acct-auth { grid-template-columns: 1fr; gap: 28px; }
+  .acct-auth__intro { order: 2; }
+  .acct-grid { grid-template-columns: 1fr; gap: 20px; }
+  .acct-profile { position: static; }
+  .acct-form-row { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 560px) {
+  .acct-hero { padding-top: 30px; }
+  .acct-body { padding-top: 22px; }
+}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>管理后台 · 蟳埔花事</title>
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/admin/admin.css?v=20261112c">
+</head>
+<body>
+
+<!-- ============ 登录 ============ -->
+<div class="login" id="login-screen" hidden>
+  <form class="login__card" id="login-form" autocomplete="on">
+    <div class="login__mark">蟳</div>
+    <h1 class="login__title">蟳埔花事</h1>
+    <p class="login__sub">Xunpu Blossom · Console</p>
+
+    <p class="form-error" id="login-error"></p>
+
+    <div class="field">
+      <label class="field__label" for="username">账号</label>
+      <input class="input" id="username" name="username" autocomplete="username" required>
+    </div>
+    <div class="field">
+      <label class="field__label" for="password">密码</label>
+      <input class="input" id="password" name="password" type="password" autocomplete="current-password" required>
+    </div>
+
+    <button class="btn btn--primary btn--block" type="submit" id="login-submit">进入后台</button>
+
+    <div class="login__foot">
+      <span>内部系统 · 订单与商品管理</span>
+      <a href="/">← 回到站点</a>
+    </div>
+  </form>
+</div>
+
+<!-- ============ 后台 ============ -->
+<div class="shell" id="app" hidden>
+  <aside class="side">
+    <div class="side__brand">
+      <div class="side__logo">蟳</div>
+      <div>
+        <div class="side__name">蟳埔花事</div>
+        <div class="side__sub">Console</div>
+      </div>
+    </div>
+
+    <nav class="nav" id="nav">
+      <button class="nav__item" data-view="dashboard">概览</button>
+      <button class="nav__item" data-view="orders">订单 <span class="nav__badge" data-badge="orders" hidden></span></button>
+      <button class="nav__item" data-view="products">商品</button>
+      <button class="nav__item" data-view="customers">客户</button>
+      <button class="nav__item" data-view="inquiries">询价 <span class="nav__badge" data-badge="inquiries" hidden></span></button>
+      <button class="nav__item" data-view="settings">设置</button>
+    </nav>
+
+    <div class="side__foot">
+      <div class="side__user">
+        <span>登录为 <strong id="whoami">—</strong></span>
+        <button class="btn btn--sm" id="logout">退出</button>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div>
+        <h1 class="topbar__title" id="page-title">概览</h1>
+        <div class="topbar__sub" id="page-sub"></div>
+      </div>
+      <div class="topbar__actions" id="page-actions"></div>
+    </header>
+
+    <div class="view" id="view"></div>
+  </main>
+</div>
+
+<!-- 抽屉 -->
+<div class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer__backdrop" data-close></div>
+  <div class="drawer__panel" role="dialog" aria-modal="true">
+    <div class="drawer__head">
+      <div>
+        <div class="small muted" id="drawer-eyebrow"></div>
+        <h2 class="topbar__title" style="font-size:20px" id="drawer-title"></h2>
+      </div>
+      <button class="icon-btn" data-close aria-label="关闭">×</button>
+    </div>
+    <div class="drawer__body" id="drawer-body"></div>
+    <div class="drawer__foot" id="drawer-foot"></div>
+  </div>
+</div>
+
+<!-- 弹窗 -->
+<div class="modal" id="modal" aria-hidden="true">
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel" role="dialog" aria-modal="true">
+    <h2 class="modal__title" id="modal-title">新建</h2>
+    <div id="modal-body"></div>
+    <div class="modal__foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/admin/admin.js?v=20261112c"></script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+# 蟳埔花事后端 · Docker 一键部署
+#
+#   docker compose up -d --build      启动
+#   docker compose logs -f            看日志
+#   docker compose down               停止
+#
+# 管理员密码：在同目录建一个 .env 文件，写 ADMIN_PASSWORD=你的密码
+# 数据持久化在 ./data（SQLite 单文件）
+
+services:
+  xunpu:
+    build: .
+    image: xunpu-blossom:latest
+    container_name: xunpu
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      TZ: Asia/Shanghai
+      ADMIN_USER: admin
+      ADMIN_NAME: ${ADMIN_NAME:-品牌主理人}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-xunpu2026}
+      TRUST_PROXY: "1"
+      LOG_REQUESTS: "1"
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

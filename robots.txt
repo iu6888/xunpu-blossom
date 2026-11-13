@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://xunpu-blossom.netlify.app/sitemap.xml

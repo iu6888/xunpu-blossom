@@ -1,0 +1,382 @@
+/* 蟳埔花事 · 礼袋与结算（后端对接层样式）
+   与站点 style.css 互不干扰，全部前缀 xb- */
+
+.xb-cart-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 10px;
+  padding: 7px 14px;
+  border: 1px solid var(--line, rgba(36, 31, 26, .18));
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink, #241F1A);
+  font: inherit;
+  font-size: .82rem;
+  letter-spacing: .04em;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background .18s ease;
+}
+.xb-cart-btn:hover { border-color: var(--red, #A8342B); color: var(--red, #A8342B); }
+.xb-cart-btn__count {
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--red, #A8342B);
+  color: #FBF8F1;
+  font-size: .66rem;
+  line-height: 17px;
+  text-align: center;
+}
+.xb-cart-btn__count[hidden] { display: none; }
+
+/* 顶栏账户入口 */
+.xb-account-btn {
+  display: inline-flex;
+  align-items: center;
+  max-width: 7.5em;
+  margin-left: 6px;
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--ink-soft, #5C534A);
+  font-size: .82rem;
+  letter-spacing: .04em;
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: border-color .18s ease, color .18s ease, background .18s ease;
+}
+.xb-account-btn:hover {
+  border-color: var(--line, rgba(36, 31, 26, .18));
+  color: var(--ink, #241F1A);
+  background: rgba(36, 31, 26, .035);
+}
+.xb-account-btn.is-in { color: var(--red, #A8342B); }
+
+/* ---------------- 遮罩与抽屉 ---------------- */
+
+.xb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: rgba(36, 31, 26, .42);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .24s ease;
+}
+.xb-overlay.is-open { opacity: 1; pointer-events: auto; }
+
+.xb-drawer {
+  position: fixed;
+  top: 0; right: 0;
+  z-index: 901;
+  width: min(400px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper, #F3EEE4);
+  border-left: 1px solid rgba(36, 31, 26, .14);
+  transform: translateX(102%);
+  transition: transform .32s cubic-bezier(.22, .8, .3, 1);
+  box-shadow: -40px 0 80px -60px rgba(36, 31, 26, .7);
+}
+.xb-drawer.is-open { transform: none; }
+
+.xb-drawer__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 22px 14px;
+  border-bottom: 1px solid rgba(36, 31, 26, .1);
+}
+.xb-drawer__title {
+  margin: 0;
+  font-family: var(--serif, "Songti SC", Georgia, serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+.xb-drawer__sub {
+  display: block;
+  margin-top: 2px;
+  font-size: .68rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  color: var(--ink-mute, #8A8074);
+}
+.xb-close {
+  width: 30px; height: 30px;
+  display: grid; place-items: center;
+  border: 1px solid rgba(36, 31, 26, .16);
+  border-radius: 50%;
+  background: transparent;
+  color: var(--ink-soft, #5C534A);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.xb-close:hover { border-color: var(--ink, #241F1A); color: var(--ink, #241F1A); }
+
+.xb-drawer__body { flex: 1; overflow-y: auto; padding: 16px 22px 22px; }
+.xb-drawer__foot {
+  padding: 16px 22px 20px;
+  border-top: 1px solid rgba(36, 31, 26, .1);
+  background: #FBF8F1;
+}
+
+/* ---------------- 商品行 ---------------- */
+
+.xb-line {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 12px;
+  align-items: start;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(36, 31, 26, .07);
+}
+.xb-line:first-child { padding-top: 4px; }
+.xb-line__img {
+  width: 56px; height: 56px;
+  object-fit: contain;
+  background: #EDE6D8;
+  border-radius: 2px;
+}
+.xb-line__name { font-size: .86rem; line-height: 1.4; }
+.xb-line__meta { margin-top: 2px; font-size: .72rem; color: var(--ink-mute, #8A8074); }
+.xb-line__price { font-size: .82rem; font-variant-numeric: tabular-nums; }
+
+.xb-qty {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  margin-top: 7px;
+  border: 1px solid rgba(36, 31, 26, .16);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.xb-qty button {
+  width: 26px; height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft, #5C534A);
+  font-size: .9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.xb-qty button:hover { background: rgba(36, 31, 26, .06); color: var(--ink, #241F1A); }
+.xb-qty button:disabled { opacity: .3; cursor: not-allowed; }
+.xb-qty span {
+  min-width: 24px;
+  text-align: center;
+  font-size: .78rem;
+  font-variant-numeric: tabular-nums;
+}
+.xb-line__del {
+  border: 0;
+  background: transparent;
+  color: var(--ink-mute, #8A8074);
+  font-size: .7rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0;
+}
+.xb-line__del:hover { color: var(--red, #A8342B); }
+
+.xb-line__right { text-align: right; }
+
+/* ---------------- 合计 ---------------- */
+
+.xb-sums { font-size: .82rem; margin-top: 4px; }
+.xb-sums__row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  color: var(--ink-soft, #5C534A);
+}
+.xb-sums__row--total {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(36, 31, 26, .12);
+  color: var(--ink, #241F1A);
+  font-size: .95rem;
+}
+.xb-sums__row--total strong {
+  font-family: var(--serif, "Songti SC", Georgia, serif);
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+.xb-hint { margin: 8px 0 0; font-size: .72rem; color: var(--ink-mute, #8A8074); }
+.xb-hint--free { color: var(--jade, #4C6157); }
+
+/* ---------------- 按钮 ---------------- */
+
+.xb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 11px 18px;
+  border: 1px solid var(--ink, #241F1A);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink, #241F1A);
+  font: inherit;
+  font-size: .84rem;
+  letter-spacing: .06em;
+  cursor: pointer;
+  transition: all .18s ease;
+}
+.xb-btn:hover { background: rgba(36, 31, 26, .05); }
+.xb-btn--primary {
+  background: var(--red, #A8342B);
+  border-color: var(--red, #A8342B);
+  color: #FBF8F1;
+}
+.xb-btn--primary:hover { background: #8C2A23; border-color: #8C2A23; }
+.xb-btn:disabled { opacity: .5; cursor: not-allowed; }
+.xb-btn--sm { width: auto; padding: 7px 14px; font-size: .78rem; }
+
+/* ---------------- 商品页选择器 ---------------- */
+
+.xb-picker { margin: 22px 0 4px; }
+.xb-picker__label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: .72rem;
+  letter-spacing: .12em;
+  color: var(--ink-mute, #8A8074);
+  text-transform: uppercase;
+}
+.xb-picker__opts { display: flex; flex-wrap: wrap; gap: 8px; }
+.xb-opt {
+  padding: 7px 14px;
+  border: 1px solid rgba(36, 31, 26, .18);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--ink-soft, #5C534A);
+  font: inherit;
+  font-size: .8rem;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.xb-opt:hover { border-color: var(--ink, #241F1A); color: var(--ink, #241F1A); }
+.xb-opt.is-active {
+  border-color: var(--red, #A8342B);
+  color: var(--red, #A8342B);
+  box-shadow: inset 0 0 0 1px var(--red, #A8342B);
+}
+.xb-opt:disabled { opacity: .35; cursor: not-allowed; text-decoration: line-through; }
+
+.xb-buy {
+  display: flex;
+  gap: 10px;
+  margin-top: 18px;
+  flex-wrap: wrap;
+}
+.xb-buy .xb-btn { width: auto; min-width: 168px; }
+.xb-buy__qty { display: flex; align-items: center; border: 1px solid rgba(36, 31, 26, .18); border-radius: 2px; }
+.xb-buy__qty button {
+  width: 34px; height: 40px;
+  border: 0; background: transparent;
+  color: var(--ink-soft, #5C534A);
+  font-size: 1rem; cursor: pointer;
+}
+.xb-buy__qty button:hover { background: rgba(36, 31, 26, .05); }
+.xb-buy__qty span { min-width: 30px; text-align: center; font-size: .85rem; }
+
+/* ---------------- 表单 ---------------- */
+
+.xb-form { display: grid; gap: 10px; }
+.xb-form__row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.xb-field { display: grid; gap: 4px; }
+.xb-field > span { font-size: .72rem; color: var(--ink-mute, #8A8074); }
+.xb-field input,
+.xb-field textarea,
+.xb-field select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid rgba(36, 31, 26, .18);
+  border-radius: 2px;
+  background: #fff;
+  color: var(--ink, #241F1A);
+  font: inherit;
+  font-size: .84rem;
+  outline: none;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.xb-field input:focus,
+.xb-field textarea:focus,
+.xb-field select:focus {
+  border-color: var(--gold, #C9A24A);
+  box-shadow: 0 0 0 3px rgba(201, 162, 74, .16);
+}
+.xb-field textarea { resize: vertical; min-height: 54px; }
+.xb-field--full { grid-column: 1 / -1; }
+
+.xb-error {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--red, #A8342B);
+  background: rgba(168, 52, 43, .08);
+  color: #8C2A23;
+  font-size: .78rem;
+}
+.xb-error[hidden] { display: none; }
+
+/* ---------------- 状态页 ---------------- */
+
+.xb-state { padding: 40px 4px; text-align: center; }
+.xb-state__mark {
+  width: 46px; height: 46px;
+  margin: 0 auto 16px;
+  border: 1px solid var(--gold, #C9A24A);
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: var(--gold, #C9A24A);
+  font-size: 1.1rem;
+}
+.xb-state h3 {
+  margin: 0 0 6px;
+  font-family: var(--serif, "Songti SC", Georgia, serif);
+  font-size: 1.1rem;
+}
+.xb-state p { margin: 0; font-size: .82rem; color: var(--ink-mute, #8A8074); line-height: 1.7; }
+.xb-state__no {
+  display: inline-block;
+  margin: 14px 0 4px;
+  padding: 6px 14px;
+  border: 1px dashed rgba(36, 31, 26, .25);
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: .84rem;
+  letter-spacing: .06em;
+}
+.xb-state__actions { margin-top: 18px; display: flex; justify-content: center; gap: 8px; }
+
+/* ---------------- 公告条 ---------------- */
+
+.xb-notice {
+  background: var(--ink, #241F1A);
+  color: #F3EEE4;
+  font-size: .76rem;
+  letter-spacing: .04em;
+  text-align: center;
+  padding: 7px 16px;
+}
+.xb-notice a { color: var(--gold, #C9A24A); text-decoration: underline; text-underline-offset: 3px; }
+
+@media (max-width: 560px) {
+  .xb-cart-btn { margin-left: 6px; padding: 6px 10px; font-size: .76rem; }
+  .xb-form__row { grid-template-columns: 1fr; }
+  .xb-buy .xb-btn { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .xb-drawer { transition-duration: .001ms; }
+  .xb-overlay { transition-duration: .001ms; }
+}

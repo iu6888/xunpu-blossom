@@ -1,0 +1,35 @@
+{
+  "name": "xunpu-blossom",
+  "version": "1.0.0",
+  "description": "蟳埔花事 · 城市礼物站点后端（商品 / 购物袋 / 订单 / 询价 / 顾客账号 / 管理后台），零外部依赖，只用 Node.js 内置模块",
+  "main": "server/index.js",
+  "license": "MIT",
+  "author": "蟳埔花事 (Xunpu Blossom)",
+  "keywords": [
+    "nodejs",
+    "sqlite",
+    "node-sqlite",
+    "zero-dependency",
+    "ecommerce",
+    "backend",
+    "rest-api",
+    "chinese-brand"
+  ],
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning server/index.js",
+    "dev": "node --disable-warning=ExperimentalWarning --watch server/index.js",
+    "seed": "node --disable-warning=ExperimentalWarning server/db/seed.js",
+    "reset": "node --disable-warning=ExperimentalWarning server/db/seed.js --reset",
+    "test": "node --disable-warning=ExperimentalWarning --test test/api.test.js",
+    "backup": "node --disable-warning=ExperimentalWarning deploy/backup.js",
+    "package": "bash package.sh",
+    "deploy": "bash deploy/install.sh",
+    "pack": "node deploy/pack.js",
+    "pack:portable": "node deploy/pack.js --portable"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
