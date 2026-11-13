@@ -6,6 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Dependencies](https://img.shields.io/badge/dependencies-0-brightgreen)](package.json)
 [![test](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml/badge.svg)](https://github.com/iu6888/xunpu-blossom/actions/workflows/test.yml)
+[![Release](https://img.shields.io/github/v/release/iu6888/xunpu-blossom)](https://github.com/iu6888/xunpu-blossom/releases/latest)
 
 泉州城市礼物「蟳埔花事」站点（6 件文创单品）的完整后端：商品目录、购物袋、订单、**顾客账号（注册 / 登录 / 我的订单）**、询价、管理后台、运营统计与数据清理。
 
@@ -14,6 +15,8 @@
 ---
 
 ## 快速开始
+
+不想拉代码的话，直接下打包好的 zip：[最新 Release](https://github.com/iu6888/xunpu-blossom/releases/latest)（约 250 KB，解压即用）。
 
 ```bash
 # 需要 Node.js ≥ 22.5（内置 node:sqlite）
