@@ -9,9 +9,11 @@
 *.yml   text eol=lf
 Dockerfile text eol=lf
 
-# Windows 批处理必须是 CRLF
-*.bat   text eol=crlf
-*.cmd   text eol=crlf
+# Windows 批处理必须保持 CRLF：用 -text 禁止换行转换。
+# 曾经用 text eol=crlf，但 git archive 不应用 eol 转换，导出的包会变 LF，
+# 对方双击 start.bat 可能出错。改为原样存储后，checkout / archive 都是 CRLF。
+*.bat   -text
+*.cmd   -text
 
 # 二进制
 *.db    binary
