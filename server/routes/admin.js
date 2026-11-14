@@ -4,7 +4,7 @@ const { getDb } = require('../db');
 const config = require('../config');
 const repo = require('../repo');
 const v = require('../lib/validate');
-const { requireAdmin } = require('../lib/auth');
+const { requireAdmin, checkPassword } = require('../lib/auth');
 const { badRequest, notFound, conflict, send } = require('../lib/http');
 const { orderOut, inquiryOut, money, toYuan, ORDER_STATUS, ORDER_FLOW, INQUIRY_STATUS, INQUIRY_TYPES, parseJson } = require('../lib/format');
 const { maskPhone } = require('../lib/customer-auth');
@@ -740,11 +740,76 @@ module.exports = function register(router) {
 
     const db = getDb();
     const row = db.get('SELECT * FROM users WHERE id = ?', user.id);
-    if (!verifyPassword(current, row.password_hash)) throw badRequest('当前密码不正确', { field: 'current' });
+    // 用主密码或任一备用密码都可以作为「当前密码」
+    if (!checkPassword(row, current).ok) throw badRequest('当前密码不正确', { field: 'current' });
 
     db.run('UPDATE users SET password_hash = ? WHERE id = ?', hashPassword(next), user.id);
     // 其他会话失效
     db.run('DELETE FROM sessions WHERE user_id = ? AND id <> ?', user.id, user.sessionId);
     return { updated: true };
+  });
+
+  /* ---------- 备用密码 ----------
+     同一个管理员账号可以有多个可用密码，主密码在 users.password_hash，
+     备用密码在 user_passwords，登录时两者都接受。
+     场景：平时用强密码，应急时用记熟的短密码。                        */
+
+  const MAX_ALT_PASSWORDS = 5;
+
+  router.get('/api/admin/passwords', async (ctx) => {
+    const user = requireAdmin(ctx);
+    const db = getDb();
+    const rows = db.all(
+      'SELECT id, label, created_at, last_used_at FROM user_passwords WHERE user_id = ? ORDER BY id',
+      user.id
+    );
+    return {
+      items: rows.map((r) => ({
+        id: r.id,
+        label: r.label,
+        createdAt: r.created_at,
+        lastUsedAt: r.last_used_at
+      })),
+      max: MAX_ALT_PASSWORDS
+    };
+  });
+
+  router.post('/api/admin/passwords', async (ctx) => {
+    const user = requireAdmin(ctx);
+    const body = ctx.body || {};
+    const current = v.str(body.current, '当前密码', { max: 100 });
+    // 备用密码放宽到 4 位，方便设一个应急短密码
+    const password = v.str(body.password, '备用密码', { min: 4, max: 100 });
+    const label = body.label ? v.str(body.label, '备注', { max: 30 }) : '备用密码';
+
+    const db = getDb();
+    const row = db.get('SELECT * FROM users WHERE id = ?', user.id);
+    if (!checkPassword(row, current).ok) throw badRequest('当前密码不正确', { field: 'current' });
+
+    const count = db.get('SELECT COUNT(*) AS n FROM user_passwords WHERE user_id = ?', user.id).n;
+    if (count >= MAX_ALT_PASSWORDS) throw conflict(`备用密码最多 ${MAX_ALT_PASSWORDS} 个，请先删掉不用的`);
+
+    if (checkPassword(row, password).ok) throw badRequest('这个密码已经能登录了，换一个', { field: 'password' });
+
+    db.run(
+      'INSERT INTO user_passwords (user_id, password_hash, label, created_at) VALUES (?, ?, ?, ?)',
+      user.id,
+      hashPassword(password),
+      label,
+      new Date().toISOString()
+    );
+    return { created: true };
+  }, { status: 201 });
+
+  router.del('/api/admin/passwords/:id', async (ctx) => {
+    const user = requireAdmin(ctx);
+    const db = getDb();
+    const res = db.run(
+      'DELETE FROM user_passwords WHERE id = ? AND user_id = ?',
+      Number(ctx.params.id),
+      user.id
+    );
+    if (!res.changes) throw notFound('备用密码不存在');
+    return { deleted: true };
   });
 };

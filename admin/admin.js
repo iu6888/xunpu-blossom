@@ -1068,6 +1068,28 @@
           </div>
 
           <div class="card">
+            <div class="section-title"><h3>备用密码</h3><span>同一账号可用多个密码</span></div>
+            <p class="small muted" style="margin:0 0 12px">
+              主密码之外再加一个应急密码，两个都能登录。<br>
+              适合平时用强密码、临时用记熟的短密码的场景。
+            </p>
+            <div id="alt-pw-list" class="small" style="line-height:2"></div>
+            <div class="field">
+              <label class="field__label">当前密码（确认是你本人在操作）</label>
+              <input class="input" type="password" id="alt-pw-current" autocomplete="current-password">
+            </div>
+            <div class="field">
+              <label class="field__label">新备用密码（至少 4 位）</label>
+              <input class="input" type="password" id="alt-pw-input" autocomplete="new-password" placeholder="一个你记得住的密码">
+            </div>
+            <div class="field">
+              <label class="field__label">备注（选填）</label>
+              <input class="input" id="alt-pw-label" placeholder="例如：应急短密码">
+            </div>
+            <button class="btn btn--sm" id="add-alt-pw">添加备用密码</button>
+          </div>
+
+          <div class="card">
             <div class="section-title"><h3>接口</h3><span>供前端或第三方调用</span></div>
             <div class="small" style="line-height:2">
               <div><code>GET /api/products</code> 商品列表</div>
@@ -1139,6 +1161,78 @@
         toast('密码已修改，其他设备已退出');
       } catch (ex) { toast(ex.message, true); }
     });
+
+    /* ---------- 备用密码 ---------- */
+    async function renderAltPasswords() {
+      const box = $('#alt-pw-list');
+      if (!box) return;
+      try {
+        const data = await api('/api/admin/passwords');
+        if (!data.items.length) {
+          box.innerHTML = '<span class="muted">还没有备用密码，当前只能用主密码登录</span>';
+          return;
+        }
+        box.innerHTML = data.items
+          .map((p) => {
+            const used = p.lastUsedAt ? '上次使用 ' + String(p.lastUsedAt).slice(5, 16).replace('T', ' ') : '从未使用';
+            return (
+              '<div style="display:flex;align-items:center;gap:10px;padding:4px 0">' +
+              '<span>' + esc(p.label) + '</span>' +
+              '<span class="muted" style="flex:1">' + esc(used) + '</span>' +
+              '<button class="btn btn--sm btn--danger" data-del-alt="' + p.id + '">删除</button>' +
+              '</div>'
+            );
+          })
+          .join('');
+      } catch (ex) {
+        box.innerHTML = '<span class="muted">' + esc(ex.message) + '</span>';
+      }
+    }
+
+    $('#add-alt-pw').addEventListener('click', async () => {
+      const password = $('#alt-pw-input').value;
+      const current = $('#alt-pw-current').value;
+      if (!current) return toast('请先填写当前密码', true);
+      if (password.length < 4) return toast('备用密码至少 4 位', true);
+      const btn = $('#add-alt-pw');
+      btn.disabled = true;
+      try {
+        await api('/api/admin/passwords', {
+          method: 'POST',
+          body: {
+            current,
+            password,
+            label: $('#alt-pw-label').value.trim() || '备用密码'
+          }
+        });
+        $('#alt-pw-current').value = '';
+        $('#alt-pw-input').value = '';
+        $('#alt-pw-label').value = '';
+        toast('备用密码已添加，现在可以用它登录了');
+        renderAltPasswords();
+      } catch (ex) {
+        toast(ex.message, true);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    $('#alt-pw-list').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-del-alt]');
+      if (!btn) return;
+      if (!window.confirm('删除这个备用密码？删除后它不能再登录，主密码不受影响。')) return;
+      btn.disabled = true;
+      try {
+        await api('/api/admin/passwords/' + btn.dataset.delAlt, { method: 'DELETE' });
+        toast('已删除');
+        renderAltPasswords();
+      } catch (ex) {
+        toast(ex.message, true);
+        btn.disabled = false;
+      }
+    });
+
+    renderAltPasswords();
 
     const CLEAR_LABELS = {
       orders: '全部订单',

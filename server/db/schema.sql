@@ -11,6 +11,18 @@ CREATE TABLE IF NOT EXISTS users (
   created_at    TEXT    NOT NULL
 );
 
+-- 备用密码：同一个管理员账号可以设多个可用密码（主密码仍存在 users.password_hash）
+-- 场景：一个人记熟的强密码 + 一个应急的短密码，两个都能登录
+CREATE TABLE IF NOT EXISTS user_passwords (
+  id            INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id       INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  password_hash TEXT    NOT NULL,
+  label         TEXT    NOT NULL DEFAULT '备用密码',
+  created_at    TEXT    NOT NULL,
+  last_used_at  TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_user_passwords_user ON user_passwords(user_id);
+
 CREATE TABLE IF NOT EXISTS sessions (
   id         INTEGER PRIMARY KEY AUTOINCREMENT,
   token_hash TEXT    NOT NULL UNIQUE,

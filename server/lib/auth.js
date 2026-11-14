@@ -46,10 +46,31 @@ function requireAdmin(ctx) {
   return ctx.user;
 }
 
+/**
+ * 校验某个账号的密码，主密码与备用密码都接受。
+ * 返回 { ok, kind: 'primary'|'alt', altId }。主密码命中优先，避免多一次 scrypt。
+ */
+function checkPassword(user, password) {
+  if (!user || typeof password !== 'string' || !password) return { ok: false };
+  if (verifyPassword(password, user.password_hash)) return { ok: true, kind: 'primary' };
+
+  const db = getDb();
+  const alts = db.all(
+    'SELECT id, password_hash FROM user_passwords WHERE user_id = ? ORDER BY id',
+    user.id
+  );
+  for (const alt of alts) {
+    if (verifyPassword(password, alt.password_hash)) return { ok: true, kind: 'alt', altId: alt.id };
+  }
+  return { ok: false };
+}
+
 function login(username, password, ip) {
   const db = getDb();
   const user = db.get('SELECT * FROM users WHERE username = ?', String(username || '').trim());
-  if (!user || !verifyPassword(password, user.password_hash)) return null;
+
+  const hit = checkPassword(user, password);
+  if (!hit.ok) return null;
 
   const token = newToken();
   const now = new Date().toISOString();
@@ -65,6 +86,9 @@ function login(username, password, ip) {
     ip || null
   );
   db.run('UPDATE users SET last_login_at = ? WHERE id = ?', now, user.id);
+  if (hit.kind === 'alt') {
+    db.run('UPDATE user_passwords SET last_used_at = ? WHERE id = ?', now, hit.altId);
+  }
 
   return {
     token,
@@ -79,4 +103,12 @@ function logout(token) {
   return db.run('DELETE FROM sessions WHERE token_hash = ?', sha256(token)).changes > 0;
 }
 
-module.exports = { readToken, currentUser, requireAdmin, login, logout, ADMIN_COOKIE: COOKIE };
+module.exports = {
+  readToken,
+  currentUser,
+  requireAdmin,
+  checkPassword,
+  login,
+  logout,
+  ADMIN_COOKIE: COOKIE
+};

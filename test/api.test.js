@@ -505,3 +505,55 @@ test('HTTP 下发的会话 Cookie 不能带 Secure（否则浏览器直接丢弃
   // 恢复一个普通会话，避免影响其它用例
   await call('POST', '/api/admin/auth/login', body);
 });
+
+test('管理员可设第二个密码，主密码与备用密码都能登录', async () => {
+  const MAIN = 'test-pass-2026';
+  const ALT = 'backup-9527';
+
+  const mainLogin = await call('POST', '/api/admin/auth/login', { username: 'admin', password: MAIN });
+  assert.equal(mainLogin.status, 200);
+  assert.ok(adminCookie, '应拿到管理员会话');
+
+  // 添加备用密码
+  const add = await call('POST', '/api/admin/passwords', { current: MAIN, password: ALT, label: '备用' });
+  assert.equal(add.status, 201);
+  assert.equal(add.json.data.created, true);
+
+  // 列表可见，且绝不返回哈希
+  const list = await call('GET', '/api/admin/passwords');
+  assert.equal(list.json.data.items.length, 1);
+  assert.equal(list.json.data.items[0].label, '备用');
+  const dumped = JSON.stringify(list.json);
+  assert.ok(!dumped.includes('scrypt'), '列表不能泄露哈希');
+  assert.ok(!('passwordHash' in list.json.data.items[0]));
+
+  // 备用密码可登录
+  const altLogin = await raw('POST', '/api/admin/auth/login', { username: 'admin', password: ALT });
+  assert.equal(altLogin.status, 200);
+  const altCookie = (altLogin.setCookie || []).find((c) => c.startsWith('xb_admin='));
+  assert.ok(altCookie, '备用密码应能拿到会话');
+
+  // 主密码依然可用
+  const mainAgain = await raw('POST', '/api/admin/auth/login', { username: 'admin', password: MAIN });
+  assert.equal(mainAgain.status, 200);
+
+  // 错误密码仍拒绝
+  const bad = await raw('POST', '/api/admin/auth/login', { username: 'admin', password: 'wrong-pass-1' });
+  assert.equal(bad.status, 401);
+
+  // 重复添加被拦
+  const dup = await call('POST', '/api/admin/passwords', { current: MAIN, password: ALT });
+  assert.equal(dup.status, 400);
+
+  // 删除后该密码立即失效，主密码不受影响
+  const id = list.json.data.items[0].id;
+  const del = await call('DELETE', '/api/admin/passwords/' + id);
+  assert.equal(del.status, 200);
+  const afterDel = await raw('POST', '/api/admin/auth/login', { username: 'admin', password: ALT });
+  assert.equal(afterDel.status, 401);
+  const stillMain = await raw('POST', '/api/admin/auth/login', { username: 'admin', password: MAIN });
+  assert.equal(stillMain.status, 200);
+
+  // 恢复管理员会话
+  await call('POST', '/api/admin/auth/login', { username: 'admin', password: MAIN });
+});
