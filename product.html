@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<script>document.documentElement.className += ' js';</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>商品详情｜蟳埔花事 · 泉州城市礼物</title>
+<meta name="description" content="蟳埔花事 · 泉州城市礼物单品详情。">
+<meta name="theme-color" content="#F3EEE4">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/store.css">
+</head>
+<body>
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="index.html" aria-label="蟳埔花事 首页">
+      <img class="brand__mark" src="assets/img/logo.svg" alt="" width="34" height="34">
+      <span class="brand__text">
+        <span class="brand__name">蟳埔花事</span>
+        <span class="brand__sub">Xunpu Blossom</span>
+      </span>
+    </a>
+    <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="story.html">花事源流</a>
+      <a class="nav__link is-active" href="collection.html" aria-current="page">城市礼物</a>
+      <a class="nav__link" href="design.html">设计说明</a>
+      <a class="nav__link" href="index.html#contact">合作联系</a>
+      <a class="nav__cta" href="index.html#contact">预约订购</a>
+    </nav>
+    <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
+  </div>
+</header>
+
+<main id="main">
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="crumbs">
+        <a href="index.html">首页</a><span>/</span><a href="collection.html">城市礼物</a><span>/</span><span data-pdp-crumb>商品</span>
+      </div>
+
+      <div class="pdp" data-pdp-root>
+        <div class="pdp__media">
+          <img data-pdp-img src="assets/img/logo.svg" alt="" width="900" height="900">
+        </div>
+
+        <div class="pdp__info">
+          <span class="eyebrow" data-pdp-eyebrow>城市礼物 · 单品</span>
+          <h1 class="h2 mt-4" data-pdp-name>正在加载…</h1>
+          <p class="pdp__en" data-pdp-en></p>
+          <p style="color:var(--ink-soft);font-size:.94rem" data-pdp-desc></p>
+
+          <div class="pdp__price">
+            <span class="price" data-pdp-price>¥—</span>
+            <span class="note" data-pdp-note></span>
+          </div>
+
+          <table class="spec">
+            <tbody data-pdp-specs></tbody>
+          </table>
+
+          <div class="pdp__actions">
+            <a class="btn btn--primary" href="index.html#contact">预约试戴 / 订购</a>
+            <a class="btn btn--ghost" href="collection.html">返回全部礼物</a>
+          </div>
+
+          <div class="pdp__badges" data-pdp-badges></div>
+        </div>
+      </div>
+
+      <div class="pdp-empty" data-pdp-error hidden style="padding:64px 0;text-align:center">
+        <h2 class="h2">没有找到这件商品</h2>
+        <p style="color:var(--ink-soft);margin:12px 0 24px">它可能已下架，或者链接不完整。</p>
+        <a class="btn" href="collection.html">看看全部城市礼物</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a class="brand" href="index.html" aria-label="蟳埔花事 首页">
+          <img class="brand__mark" src="assets/img/logo.svg" alt="" width="34" height="34">
+          <span class="brand__text">
+            <span class="brand__name">蟳埔花事</span>
+            <span class="brand__sub">Xunpu Blossom</span>
+          </span>
+        </a>
+        <p>泉州城市礼物 · 花韵文化主题。以蟳埔女簪花围为原型的文创系列，从刺桐城出发，把花戴到更远的地方。</p>
+      </div>
+      <div class="footer__col">
+        <h4>浏览</h4>
+        <ul>
+          <li><a href="story.html">花事源流</a></li>
+          <li><a href="collection.html">城市礼物</a></li>
+          <li><a href="design.html">设计说明</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>单品</h4>
+        <ul>
+          <li><a href="product-garland.html">花冠 · 头顶花园</a></li>
+          <li><a href="product-incense.html">花事三叠 · 香氛</a></li>
+          <li><a href="product-scarf.html">半城红 · 真丝方巾</a></li>
+          <li><a href="collection.html">全部礼物</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer__bottom">
+      <span>© <span data-year>2026</span> 蟳埔花事 XUNPU BLOSSOM · 泉州</span>
+      <span>第八届「润物无声」泉州文创旅游商品设计大赛 · 赛道一 城市礼物</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/main.js?v=20261106" defer></script>
+<script src="assets/js/store.js?v=20261111" defer></script>
+<script>
+/* 通用商品详情页：按 ?slug= 从接口取数渲染
+ * 没带 slug 或商品已下架时，展示空状态而不是报错。
+ */
+(function () {
+  'use strict';
+
+  var CAT = { wear: '可佩戴', scent: '香氛', textile: '织物', object: '器物', gift: '礼盒' };
+  var CAT_EN = { wear: 'Wearable', scent: 'Fragrance', textile: 'Textile', object: 'Object', gift: 'Gift Set' };
+
+  var slug = '';
+  try {
+    slug = new URLSearchParams(location.search).get('slug') || '';
+  } catch (err) {
+    slug = '';
+  }
+  slug = slug.replace(/[^a-zA-Z0-9-]/g, '');
+
+  var root = document.querySelector('[data-pdp-root]');
+  var empty = document.querySelector('[data-pdp-error]');
+
+  function esc(v) {
+    return String(v === null || v === undefined ? '' : v).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+
+  function imgOf(product) {
+    var s = String(product.image || '').trim();
+    if (!s) return 'assets/img/logo.svg';
+    if (/^(https?:)?\/\//i.test(s) || s.indexOf('data:') === 0) return s;
+    return '/' + s.replace(/^\/+/, '');
+  }
+
+  function fail() {
+    if (root) root.hidden = true;
+    if (empty) empty.hidden = false;
+  }
+
+  if (!slug) {
+    fail();
+    return;
+  }
+
+  fetch('/api/products/' + encodeURIComponent(slug), {
+    credentials: 'same-origin',
+    headers: { Accept: 'application/json' }
+  })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function (payload) {
+      var p = payload && payload.data ? payload.data : payload;
+      if (!p || !p.slug) throw new Error('空数据');
+
+      var cats = p.categories && p.categories.length ? p.categories : [p.category];
+      var primary = cats[0] || 'object';
+
+      document.title = p.name + '｜蟳埔花事 · 泉州城市礼物';
+      var meta = document.querySelector('meta[name="description"]');
+      if (meta) meta.setAttribute('content', (p.tagline || p.description || p.name).slice(0, 110));
+
+      var crumb = document.querySelector('[data-pdp-crumb]');
+      if (crumb) crumb.textContent = p.name;
+
+      var nameEl = document.querySelector('[data-pdp-name]');
+      if (nameEl) nameEl.textContent = p.name;
+
+      var enEl = document.querySelector('[data-pdp-en]');
+      if (enEl) enEl.textContent = p.nameEn || (CAT_EN[primary] + ' / Xunpu Blossom');
+
+      var descEl = document.querySelector('[data-pdp-desc]');
+      if (descEl) descEl.textContent = p.description || p.tagline || '';
+
+      var eyebrow = document.querySelector('[data-pdp-eyebrow]');
+      if (eyebrow) eyebrow.textContent = '城市礼物 · ' + (CAT[primary] || '单品');
+
+      var img = document.querySelector('[data-pdp-img]');
+      if (img) {
+        img.src = imgOf(p);
+        img.alt = p.name;
+        img.addEventListener('error', function () {
+          img.src = 'assets/img/logo.svg';
+        }, { once: true });
+      }
+
+      var priceEl = document.querySelector('[data-pdp-price]');
+      if (priceEl) priceEl.textContent = p.priceFromText || ('¥' + (p.priceFrom || 0));
+
+      var noteEl = document.querySelector('[data-pdp-note]');
+      if (noteEl) {
+        var bits = [];
+        bits.push(p.inStock ? '现货' : '暂时缺货，可预约');
+        if (p.unit) bits.push('单位：' + p.unit);
+        noteEl.textContent = bits.join(' · ');
+      }
+
+      var specs = document.querySelector('[data-pdp-specs]');
+      if (specs) {
+        specs.innerHTML = (p.specs || []).map(function (s) {
+          return '<tr><th>' + esc(s.label || '') + '</th><td>' + esc(s.value || '') + '</td></tr>';
+        }).join('') || '<tr><th>分类</th><td>' + esc(CAT[primary] || '单品') + '</td></tr>';
+      }
+
+      var badges = document.querySelector('[data-pdp-badges]');
+      if (badges) {
+        badges.innerHTML = (p.badges || []).map(function (b) {
+          return '<span class="badge">' + esc(b) + '</span>';
+        }).join('');
+      }
+
+      /* 结构化数据，便于搜索引擎识别商品 */
+      try {
+        var ld = document.createElement('script');
+        ld.type = 'application/ld+json';
+        ld.textContent = JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'Product',
+          name: p.name,
+          image: location.origin + '/' + String(p.image || '').replace(/^\/+/, ''),
+          description: p.description || p.tagline || '',
+          offers: {
+            '@type': 'Offer',
+            price: p.priceFrom,
+            priceCurrency: 'CNY',
+            availability: p.inStock ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock'
+          }
+        });
+        document.head.appendChild(ld);
+      } catch (err) { /* 忽略 */ }
+    })
+    .catch(fail);
+})();
+</script>
+</body>
+</html>

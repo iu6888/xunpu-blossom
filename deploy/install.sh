@@ -183,15 +183,25 @@ fi
 step "部署代码到 $APP_DIR"
 mkdir -p "$APP_DIR"
 if [ "$SOURCE_DIR" != "$APP_DIR" ]; then
+  # --delete 会删掉目标端多余的文件，因此必须把「后台运行时产生的文件」排除掉，
+  # 否则每次部署都会把店主上传的商品图（assets/img 下的位图）一起删掉。
+  # 源码自带的图都是 svg，所以只保护位图扩展名即可。
   if command -v rsync >/dev/null 2>&1; then
     rsync -a --delete \
       --exclude 'data/' --exclude '.git/' --exclude '.tmp/' --exclude 'node_modules/' \
-      --exclude '*.log' "$SOURCE_DIR/" "$APP_DIR/"
+      --exclude '*.log' \
+      --exclude 'assets/img/*.jpg' --exclude 'assets/img/*.jpeg' \
+      --exclude 'assets/img/*.png' --exclude 'assets/img/*.webp' \
+      --exclude 'assets/img/*.gif' \
+      "$SOURCE_DIR/" "$APP_DIR/"
   else
-    # 没有 rsync 时退回 cp，注意保留已有 data 目录
+    # 没有 rsync 时退回 cp，注意保留已有 data 目录与上传的图片
     find "$APP_DIR" -mindepth 1 -maxdepth 1 ! -name data -exec rm -rf {} +
     tar -cf - -C "$SOURCE_DIR" \
-      --exclude=./data --exclude=./.git --exclude=./.tmp --exclude=./node_modules --exclude='*.log' . \
+      --exclude=./data --exclude=./.git --exclude=./.tmp --exclude=./node_modules --exclude='*.log' \
+      --exclude='./assets/img/*.jpg' --exclude='./assets/img/*.jpeg' \
+      --exclude='./assets/img/*.png' --exclude='./assets/img/*.webp' \
+      --exclude='./assets/img/*.gif' . \
       | tar -xf - -C "$APP_DIR"
   fi
 fi
@@ -321,6 +331,13 @@ server
 
     client_max_body_size 4m;
 
+    # 宝塔的 proxy.conf 全局开了 proxy_cache（默认 1 天过期）。
+    # 这个站点内容随时会改（上架商品、改文案），被 Nginx 缓存住会出现
+    # 「后台改了、前台看不到」的幽灵问题，这里直接关掉，交给应用自己发缓存头。
+    proxy_cache off;
+    proxy_no_cache 1;
+    proxy_cache_bypass 1;
+
     access_log /www/wwwlogs/xunpu.log;
     error_log  /www/wwwlogs/xunpu.error.log;
 
@@ -372,6 +389,11 @@ server {
 
     # 上传/表单体积上限
     client_max_body_size 4m;
+
+    # 站点内容随时会改，禁止 Nginx 层缓存（见宝塔分支的说明）
+    proxy_cache off;
+    proxy_no_cache 1;
+    proxy_cache_bypass 1;
 
     # 文本资源压缩：Nginx 默认只压 html，这里补上 css/js/json/svg
     # 按流量计费时这能省掉六七成的文本字节

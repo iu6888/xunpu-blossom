@@ -382,12 +382,17 @@ module.exports = function register(router) {
     const now = new Date().toISOString();
     const priceFrom = Math.min(...parsed.map((p) => p.price));
 
+    // 新上架默认直接进「在售」，但允许前端指定主推 / 限量 / 归档
+    const featured = body.featured === true || body.featured === 1 ? 1 : 0;
+    const isLimited = body.isLimited === true || body.isLimited === 1 ? 1 : 0;
+    const status = body.status === 'archived' ? 'archived' : 'active';
+
     const id = db.tx(() => {
       const res = db.run(
         `INSERT INTO products
           (slug, name, name_en, category, categories, tagline, description, specs, badges, image, unit,
            price_from, is_limited, featured, status, sort_order, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 'active', ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         slug,
         name,
         v.optStr(body.nameEn, '英文名', { max: 80 }) || '',
@@ -400,6 +405,9 @@ module.exports = function register(router) {
         v.optStr(body.image, '主图', { max: 200 }) || '',
         v.optStr(body.unit, '单位', { max: 10 }) || '件',
         priceFrom,
+        isLimited,
+        featured,
+        status,
         v.int(body.sortOrder, '排序', { min: 0, max: 9999, fallback: 99 }),
         now,
         now

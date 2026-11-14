@@ -53,7 +53,15 @@
 
   const slugFromPath = (function () {
     var m = location.pathname.match(/product-([a-z0-9-]+)\.html$/i);
-    return m ? m[1] : null;
+    if (m) return m[1];
+    // 通用详情页 product.html?slug=xxx
+    var q = null;
+    try {
+      q = new URLSearchParams(location.search).get('slug');
+    } catch (err) {
+      q = null;
+    }
+    return q && /^[a-z0-9-]+$/i.test(q) ? q : null;
   })();
 
   /* ---------------------------------------------------------------- */

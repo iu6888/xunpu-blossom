@@ -685,7 +685,10 @@
           <label class="field__label">主图路径</label>
           <input class="input" id="np-image" placeholder="assets/img/p-garland.svg">
         </div>
-      </div>`, `
+      </div>
+      <label class="small muted" style="display:flex;gap:6px;align-items:center">
+        <input type="checkbox" id="np-featured" checked> 在首页主推（不勾也会出现在作品集里）
+      </label>`, `
       <button class="btn" data-close>取消</button>
       <button class="btn btn--primary" id="np-save">创建</button>`);
 
@@ -697,6 +700,7 @@
         tagline: $('#np-tagline').value.trim(),
         image: $('#np-image').value.trim(),
         unit: '件',
+        featured: $('#np-featured').checked,
         variants: [{
           name: $('#np-variant').value.trim() || '标准款',
           price: $('#np-price').value,

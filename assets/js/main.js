@@ -57,15 +57,20 @@
   }
 
   /* ---------- 4. 系列筛选 ---------- */
+  /* 卡片可能由 catalog.js 动态重建，所以每次筛选都重新采集，不能缓存 NodeList */
+  function collectCards() {
+    return Array.prototype.slice.call(doc.querySelectorAll('[data-category]'));
+  }
+
   var filterWrap = doc.querySelector('[data-filters]');
   if (filterWrap) {
-    var cards = Array.prototype.slice.call(doc.querySelectorAll('[data-category]'));
     var countEl = doc.querySelector('[data-count]');
 
     filterWrap.addEventListener('click', function (e) {
       var btn = e.target.closest('.chip');
       if (!btn) return;
       var key = btn.getAttribute('data-filter');
+      var cards = collectCards();
 
       filterWrap.querySelectorAll('.chip').forEach(function (c) {
         c.classList.toggle('is-active', c === btn);
@@ -148,20 +153,27 @@
   }
 
   if (catModal) {
-    // 预提取卡片数据，弹层直接复用
-    catModal._cards = Array.prototype.slice.call(doc.querySelectorAll('[data-category]')).map(function (el) {
-      var img = el.querySelector('.card__media img');
-      var more = el.querySelector('.card__more');
-      var price = el.querySelector('.price');
-      return {
-        el: el,
-        img: img ? img.getAttribute('src') : '',
-        alt: img ? (img.getAttribute('alt') || '') : '',
-        en: (el.querySelector('.card__en') || {}).textContent || '',
-        name: (el.querySelector('.card__name') || {}).textContent || '',
-        price: price ? price.innerHTML : '',
-        href: more ? more.getAttribute('href') : '#'
-      };
+    // 预提取卡片数据，弹层直接复用；动态渲染后需要重新采集
+    var readCards = function () {
+      return collectCards().map(function (el) {
+        var img = el.querySelector('.card__media img');
+        var more = el.querySelector('.card__more');
+        var price = el.querySelector('.price');
+        return {
+          el: el,
+          img: img ? img.getAttribute('src') : '',
+          alt: img ? (img.getAttribute('alt') || '') : '',
+          en: (el.querySelector('.card__en') || {}).textContent || '',
+          name: (el.querySelector('.card__name') || {}).textContent || '',
+          price: price ? price.innerHTML : '',
+          href: more ? more.getAttribute('href') : '#'
+        };
+      });
+    };
+
+    catModal._cards = readCards();
+    doc.addEventListener('catalog:rendered', function () {
+      catModal._cards = readCards();
     });
 
     catModal.addEventListener('click', function (e) {
