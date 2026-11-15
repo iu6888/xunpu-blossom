@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>蟳埔花事 · 头顶花园｜泉州城市礼物</title>
 <meta name="description" content="蟳埔花事是泉州「城市礼物」花韵文化主题文创系列：以蟳埔女簪花围为原型，设计花冠发饰、香氛、真丝方巾等六件可佩戴、可赠送、可量产的泉州城市礼物。">
@@ -10,8 +10,8 @@
 <meta name="author" content="蟳埔花事 XUNPU BLOSSOM">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 <meta property="og:type" content="website">
 <meta property="og:title" content="蟳埔花事 · 头顶花园｜泉州城市礼物">
 <meta property="og:description" content="把一座城的花，戴在头上。以蟳埔女簪花围为原型的泉州城市礼物系列。">
@@ -19,6 +19,13 @@
 <meta property="og:locale" content="zh_CN">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -31,11 +38,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link is-active" href="index.html" aria-current="page">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="#contact">合作联系</a>
-      <a class="nav__cta" href="collection.html">选购礼盒</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -44,23 +51,23 @@
 <main id="main">
 
   <!-- ================= 首屏 ================= -->
-  <section class="hero">
+  <section class="hero" data-petals>
     <canvas id="petals-back" class="petals petals--back" aria-hidden="true"></canvas>
     <div class="frost" aria-hidden="true"></div>
     <div class="grain" aria-hidden="true"></div>
     <canvas id="petals-front" class="petals petals--front" aria-hidden="true"></canvas>
     <div class="wrap hero__grid">
       <div class="hero__text">
-        <span class="eyebrow">泉州城市礼物 · 花韵文化主题</span>
-        <h1 class="display hero__title">
+        <span class="eyebrow reveal">泉州城市礼物 · 花韵文化主题</span>
+        <h1 class="display hero__title reveal">
           <span>头顶</span>
           <span class="stroke">花园</span>
         </h1>
-        <p class="hero__en">A Garden Worn on the Head · Quanzhou</p>
-        <div class="hero__lead">
+        <p class="hero__en reveal">A Garden Worn on the Head · Quanzhou</p>
+        <div class="hero__lead reveal">
           <p class="lead">泉州湾的入海口，蟳埔女的发髻上四季开着花。我们把这一顶「花园」拆解、重做，让它可以被佩戴、被带走、被赠予——成为一份真正属于泉州的城市礼物。</p>
         </div>
-        <div class="hero__actions">
+        <div class="hero__actions reveal">
           <a class="btn btn--primary" href="collection.html">
             浏览城市礼物
             <svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
@@ -68,7 +75,7 @@
           <a class="btn btn--ghost" href="story.html">读花事源流</a>
         </div>
 
-        <div class="hero__meta">
+        <div class="hero__meta reveal">
           <dl>
             <dt>赛道</dt>
             <dd>城市礼物</dd>
@@ -84,7 +91,7 @@
         </div>
       </div>
 
-      <div class="hero__art">
+      <div class="hero__art reveal" data-delay="2">
         <img class="hero__crown" src="assets/img/crown-top.svg" width="520" height="520"
              alt="蟳埔女簪花围俯视插画：发髻之上层层围戴素馨、含笑与茉莉花环">
         <span class="tag-rot tag-rot--right" aria-hidden="true">簪 花 围 · 素 馨 含 笑</span>
@@ -95,22 +102,26 @@
   <!-- ================= 花名滚动 ================= -->
   <div class="marquee" aria-hidden="true">
     <div class="marquee__track">
-      <span class="marquee__item">素馨</span>
-      <span class="marquee__item">含笑</span>
-      <span class="marquee__item">茉莉</span>
-      <span class="marquee__item">玉兰</span>
-      <span class="marquee__item">刺桐</span>
-      <span class="marquee__item">蚝壳厝</span>
-      <span class="marquee__item">海风</span>
-      <span class="marquee__item">头顶花园</span>
-      <span class="marquee__item">素馨</span>
-      <span class="marquee__item">含笑</span>
-      <span class="marquee__item">茉莉</span>
-      <span class="marquee__item">玉兰</span>
-      <span class="marquee__item">刺桐</span>
-      <span class="marquee__item">蚝壳厝</span>
-      <span class="marquee__item">海风</span>
-      <span class="marquee__item">头顶花园</span>
+      <div class="marquee__group">
+        <span class="marquee__item">素馨</span>
+        <span class="marquee__item">含笑</span>
+        <span class="marquee__item">茉莉</span>
+        <span class="marquee__item">玉兰</span>
+        <span class="marquee__item">刺桐</span>
+        <span class="marquee__item">蚝壳厝</span>
+        <span class="marquee__item">海风</span>
+        <span class="marquee__item">头顶花园</span>
+      </div>
+      <div class="marquee__group">
+        <span class="marquee__item">素馨</span>
+        <span class="marquee__item">含笑</span>
+        <span class="marquee__item">茉莉</span>
+        <span class="marquee__item">玉兰</span>
+        <span class="marquee__item">刺桐</span>
+        <span class="marquee__item">蚝壳厝</span>
+        <span class="marquee__item">海风</span>
+        <span class="marquee__item">头顶花园</span>
+      </div>
     </div>
   </div>
 
@@ -221,7 +232,7 @@
             <h2 class="h2" style="margin-top:14px">从一顶花冠，到一份可以寄出的心意</h2>
           </div>
         </div>
-        <a class="link-underline" href="collection.html">查看全部城市礼物
+        <a class="link-underline" href="collection.html">查看全部六件
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
         </a>
       </div>
@@ -275,7 +286,7 @@
       </div>
 
       <div class="mt-10 reveal" style="display:flex;flex-wrap:wrap;gap:14px;justify-content:center">
-        <a class="btn" href="collection.html">全部城市礼物</a>
+        <a class="btn" href="collection.html">全部六件城市礼物</a>
       </div>
     </div>
   </section>
@@ -505,8 +516,8 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
-<script src="assets/js/catalog.js?v=20261114" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
+<script src="assets/js/catalog.js?v=20261115" defer></script>
 </body>
 </html>

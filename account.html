@@ -2,17 +2,24 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>我的账户｜蟳埔花事</title>
 <meta name="description" content="登录或注册蟳埔花事账户，查看订单进度、保存收货信息、管理个人资料。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
-<link rel="stylesheet" href="assets/css/account.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
+<link rel="stylesheet" href="assets/css/account.css?v=20261253">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -25,11 +32,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="collection.html">选购礼盒</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -40,13 +47,13 @@
   <section class="acct-hero">
     <div class="wrap acct-hero__inner">
       <div>
-        <div class="crumbs">
+        <div class="crumbs reveal">
           <a href="index.html">首页</a><span>/</span><span>我的账户</span>
         </div>
-        <h1 id="acct-title">我的账户</h1>
-        <p id="acct-lead">登录后可以看到每一顶花冠走到哪一步，也能把收货信息存下来，下次不必再填。</p>
+        <h1 id="acct-title" class="reveal">我的账户</h1>
+        <p id="acct-lead" class="reveal">登录后可以看到每一顶花冠走到哪一步，也能把收货信息存下来，下次不必再填。</p>
       </div>
-      <div id="acct-aside"></div>
+      <div id="acct-aside" class="reveal" data-delay="4"></div>
     </div>
   </section>
 
@@ -99,8 +106,8 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
-<script src="assets/js/account.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
+<script src="assets/js/account.js?v=20261116" defer></script>
 </body>
 </html>

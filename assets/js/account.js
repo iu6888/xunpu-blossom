@@ -37,6 +37,53 @@
     return '¥' + (num % 1 === 0 ? num : num.toFixed(2));
   }
 
+  /* ---- 浮动标签字段 -------------------------------------------------
+     标签平常躺在输入框里，聚焦或有内容时缩到框上方并常驻；
+     说明文字放框下方，不再用 placeholder（占位符一输入就没了）。 */
+  function field(o) {
+    var attrs = '';
+    if (o.name) attrs += ' name="' + o.name + '"';
+    if (o.type) attrs += ' type="' + o.type + '"';
+    if (o.mode) attrs += ' inputmode="' + o.mode + '"';
+    if (o.autocomplete) attrs += ' autocomplete="' + o.autocomplete + '"';
+    if (o.maxlength) attrs += ' maxlength="' + o.maxlength + '"';
+    if (o.value !== undefined && o.value !== null && o.value !== '') {
+      attrs += ' value="' + o.value + '"';
+    }
+    if (o.disabled) attrs += ' disabled';
+
+    return '<label class="xb-field' + (o.value ? ' is-filled' : '') + '">' +
+      '<span class="xb-field__label">' + o.label + '</span>' +
+      '<input' + attrs + '>' +
+      (o.hint ? '<span class="xb-field__hint">' + o.hint + '</span>' : '') +
+      '</label>';
+  }
+
+  /* 有内容 → 标签浮上去；清空 → 落回框里 */
+  function syncField(input) {
+    var wrap = input && input.closest ? input.closest('.xb-field') : null;
+    if (!wrap) return;
+    wrap.classList.toggle('is-filled', String(input.value || '').length > 0);
+  }
+
+  function syncFields(scope) {
+    var host = scope || doc;
+    var list = host.querySelectorAll ? host.querySelectorAll('.xb-field input, .xb-field textarea') : [];
+    Array.prototype.forEach.call(list, syncField);
+  }
+
+  doc.addEventListener('input', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.xb-field')) syncField(e.target);
+  }, true);
+
+  doc.addEventListener('focusin', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.xb-field')) syncField(e.target);
+  }, true);
+
+  doc.addEventListener('change', function (e) {
+    if (e.target && e.target.closest && e.target.closest('.xb-field')) syncField(e.target);
+  }, true);
+
   function timeText(iso) {
     if (!iso) return '—';
     var d = new Date(iso);
@@ -111,22 +158,20 @@
           '<p class="acct-alert" id="acct-alert" hidden></p>' +
 
           '<form class="acct-form" id="auth-form" novalidate>' +
-            '<label class="xb-field"><span>手机号</span>' +
-              '<input name="phone" inputmode="numeric" autocomplete="tel" placeholder="11 位手机号" maxlength="11"></label>' +
+            field({ name: 'phone', mode: 'numeric', autocomplete: 'tel', maxlength: 11, label: '手机号', hint: '11 位手机号' }) +
 
             (isLogin ? '' :
-              '<label class="xb-field"><span>昵称</span>' +
-                '<input name="nickname" autocomplete="nickname" placeholder="怎么称呼你（可留空）" maxlength="20"></label>' +
-              '<label class="xb-field"><span>邮箱（可选，用于接收订单通知）</span>' +
-                '<input name="email" type="email" autocomplete="email" placeholder="name@example.com"></label>') +
+              field({ name: 'nickname', autocomplete: 'nickname', maxlength: 20, label: '昵称', hint: '可留空，会出现在订单与祝福卡上' }) +
+              field({ name: 'email', type: 'email', autocomplete: 'email', label: '邮箱', hint: '选填，用于接收订单通知' })) +
 
-            '<label class="xb-field"><span>密码</span>' +
-              '<input name="password" type="password" autocomplete="' + (isLogin ? 'current-password' : 'new-password') + '" placeholder="' +
-                (isLogin ? '登录密码' : '至少 8 位，不能是纯数字') + '"></label>' +
+            field({
+              name: 'password', type: 'password', label: '密码',
+              autocomplete: isLogin ? 'current-password' : 'new-password',
+              hint: isLogin ? '' : '至少 8 位，不能是纯数字'
+            }) +
 
             (isLogin ? '' :
-              '<label class="xb-field"><span>确认密码</span>' +
-                '<input name="confirm" type="password" autocomplete="new-password" placeholder="再输一次"></label>') +
+              field({ name: 'confirm', type: 'password', autocomplete: 'new-password', label: '确认密码', hint: '再输一次' })) +
 
             '<button type="submit" class="xb-btn xb-btn--primary acct-form__submit" data-submit>' +
               (isLogin ? '登录' : '注册并登录') +
@@ -141,6 +186,8 @@
           '</div>' +
         '</div>' +
       '</div>';
+
+    syncFields(root);
 
     root.querySelectorAll('[data-tab]').forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -407,15 +454,14 @@
     box.innerHTML = panelHead('个人资料', '昵称会出现在订单与祝福卡上') +
       '<div class="acct-card">' +
         '<form class="acct-form" id="profile-form">' +
-          '<label class="xb-field"><span>昵称</span>' +
-            '<input name="nickname" value="' + esc(c.nickname) + '" maxlength="20"></label>' +
-          '<label class="xb-field"><span>邮箱（选填，用于接收订单通知）</span>' +
-            '<input name="email" type="email" value="' + esc(c.email) + '"></label>' +
-          '<label class="xb-field"><span>手机号</span>' +
-            '<input value="' + esc(c.phoneMasked) + '" disabled></label>' +
+          field({ name: 'nickname', maxlength: 20, label: '昵称', value: esc(c.nickname) }) +
+          field({ name: 'email', type: 'email', label: '邮箱', hint: '选填，用于接收订单通知', value: esc(c.email) }) +
+          field({ label: '手机号', hint: '手机号不可自行修改，需联系客服核验', value: esc(c.phoneMasked), disabled: true }) +
           '<button type="submit" class="xb-btn xb-btn--primary" data-save>保存修改</button>' +
         '</form>' +
       '</div>';
+
+    syncFields(box);
 
     doc.getElementById('profile-form').addEventListener('submit', function (e) {
       e.preventDefault();
@@ -447,16 +493,15 @@
     box.innerHTML = panelHead('修改密码', '修改后其它设备会自动下线') +
       '<div class="acct-card">' +
         '<form class="acct-form" id="pw-form">' +
-          '<label class="xb-field"><span>当前密码</span>' +
-            '<input name="current" type="password" autocomplete="current-password"></label>' +
-          '<label class="xb-field"><span>新密码</span>' +
-            '<input name="next" type="password" autocomplete="new-password" placeholder="至少 8 位，不能是纯数字"></label>' +
-          '<label class="xb-field"><span>确认新密码</span>' +
-            '<input name="confirm" type="password" autocomplete="new-password"></label>' +
+          field({ name: 'current', type: 'password', autocomplete: 'current-password', label: '当前密码' }) +
+          field({ name: 'next', type: 'password', autocomplete: 'new-password', label: '新密码', hint: '至少 8 位，不能是纯数字' }) +
+          field({ name: 'confirm', type: 'password', autocomplete: 'new-password', label: '确认新密码' }) +
           '<button type="submit" class="xb-btn xb-btn--primary" data-save>更新密码</button>' +
         '</form>' +
         '<div class="acct-note">忘记密码目前需要联系品牌客服人工核验身份后重置。</div>' +
       '</div>';
+
+    syncFields(box);
 
     doc.getElementById('pw-form').addEventListener('submit', function (e) {
       e.preventDefault();

@@ -2,18 +2,25 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>花事源流｜蟳埔花事 · 泉州城市礼物</title>
 <meta name="description" content="从宋元刺桐港的海舶，到蟳埔女的发髻：素馨、含笑、茉莉如何随海上丝绸之路来到泉州，又如何长成一顶「头顶花园」。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 <meta property="og:title" content="花事源流｜蟳埔花事">
 <meta property="og:description" content="一朵花走了很远的路，才落到发髻上。">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -26,11 +33,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link is-active" href="story.html" aria-current="page">花事源流</a>
       <a class="nav__link" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="collection.html">选购礼盒</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -40,16 +47,16 @@
 
   <section class="page-hero">
     <div class="wrap">
-      <div class="crumbs">
+      <div class="crumbs reveal">
         <a href="index.html">首页</a><span>/</span><span>花事源流</span>
       </div>
       <div class="page-hero__inner">
         <div>
-          <span class="eyebrow">源流 · Origin</span>
-          <h1 class="display">花事<br>源流</h1>
-          <p class="hero__en">Where the flowers came from</p>
+          <span class="eyebrow reveal">源流 · Origin</span>
+          <h1 class="display reveal">花事<br>源流</h1>
+          <p class="hero__en reveal">Where the flowers came from</p>
         </div>
-        <aside class="page-hero__aside">
+        <aside class="page-hero__aside reveal" data-delay="4">
           <p>蟳埔在泉州湾晋江北岸，属丰泽区东海街道。潮水涨落之间，渔获、蚝壳与花香共同构成了这座村子的日常。</p>
           <p>理解簪花围，要先理解这条海岸线：它既面向海洋，也面向一千年不断的海上往来。</p>
         </aside>
@@ -311,7 +318,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

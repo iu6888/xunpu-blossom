@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>花事三叠 · 香氛礼盒｜蟳埔花事</title>
 <meta name="description" content="花事三叠香氛礼盒：素馨香膏15g、含笑线香20支、海风香囊1只。素馨—含笑—海盐的三段式香调，把清晨花市的气味装进骨瓷小盒。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link is-active" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="index.html#contact">预约订购</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -43,22 +50,22 @@
       </div>
 
       <div class="pdp">
-        <div class="pdp__media">
+        <div class="pdp__media reveal">
           <img src="assets/img/p-incense.svg" alt="花事三叠香氛礼盒：骨瓷香膏盒、含笑线香与海风香囊" width="900" height="900">
         </div>
 
         <div class="pdp__info">
-          <span class="eyebrow">单品 02 · 香氛</span>
-          <h1 class="h2 mt-4">花事三叠 · 香氛</h1>
-          <p class="pdp__en">Three-fold Fragrance Set</p>
-          <p style="color:var(--ink-soft);font-size:.94rem">素馨香膏、含笑线香、海风香囊。把清晨花市的气味装进一只骨瓷小盒——合上盖子，泉州就跟着走了。</p>
+          <span class="eyebrow reveal">单品 02 · 香氛</span>
+          <h1 class="h2 mt-4 reveal">花事三叠 · 香氛</h1>
+          <p class="pdp__en reveal">Three-fold Fragrance Set</p>
+          <p class="reveal" style="color:var(--ink-soft);font-size:.94rem">素馨香膏、含笑线香、海风香囊。把清晨花市的气味装进一只骨瓷小盒——合上盖子，泉州就跟着走了。</p>
 
-          <div class="pdp__price">
+          <div class="pdp__price reveal">
             <span class="price">¥268</span>
             <span class="note">整套礼盒 · 含骨瓷盒</span>
           </div>
 
-          <table class="spec">
+          <table class="spec reveal">
             <tbody>
               <tr><th>内容</th><td>素馨香膏 15g / 含笑线香 20 支 / 海风香囊 1 只</td></tr>
               <tr><th>香调</th><td>素馨 — 含笑 — 海盐</td></tr>
@@ -69,12 +76,12 @@
             </tbody>
           </table>
 
-          <div class="pdp__actions">
+          <div class="pdp__actions reveal">
             <a class="btn btn--primary" href="index.html#contact">咨询与订购</a>
             <a class="btn btn--ghost" href="collection.html">返回全部单品</a>
           </div>
 
-          <div class="pdp__badges">
+          <div class="pdp__badges reveal">
             <span class="badge">无酒精香膏</span>
             <span class="badge">天然线香</span>
             <span class="badge">香囊可续填</span>
@@ -220,7 +227,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

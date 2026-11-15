@@ -2,17 +2,24 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>找不到这一页｜蟳埔花事</title>
 <meta name="description" content="这一页不在花园里。回到蟳埔花事首页，或浏览泉州城市礼物系列。">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -25,11 +32,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="collection.html">选购礼盒</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -38,17 +45,17 @@
 <main id="main">
   <section class="notfound">
     <div class="wrap">
-      <div class="notfound__code">404</div>
-      <h1 class="display" style="font-size:clamp(1.6rem,4vw,2.4rem);">这一页，没有开花</h1>
-      <p>地址可能被写错了，或这朵花已被移栽到别处。<br>回到首页，或从下面三条路重新走进这座花园。</p>
-      <div class="hero__actions" style="justify-content:center;margin-top:32px;">
+      <div class="notfound__code reveal">404</div>
+      <h1 class="display reveal" style="font-size:clamp(1.6rem,4vw,2.4rem);">这一页，没有开花</h1>
+      <p class="reveal">地址可能被写错了，或这朵花已被移栽到别处。<br>回到首页，或从下面三条路重新走进这座花园。</p>
+      <div class="hero__actions reveal" style="justify-content:center;margin-top:32px;">
         <a class="btn btn--primary" href="index.html">
           回到首页
           <svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
         </a>
         <a class="btn btn--ghost" href="collection.html">浏览城市礼物</a>
       </div>
-      <p class="mt-6" style="font-size:.82rem;letter-spacing:.14em;">
+      <p class="mt-6 reveal" style="font-size:.82rem;letter-spacing:.14em;">
         <a href="story.html">花事源流</a> · <a href="product-garland.html">花冠 · 头顶花园</a> · <a href="design.html">设计说明</a>
       </p>
     </div>
@@ -64,7 +71,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

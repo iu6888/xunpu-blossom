@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>花签 · 黄铜书签｜蟳埔花事</title>
 <meta name="description" content="花签黄铜书签：H62黄铜蚀刻，五瓣花冠轮廓，朱红烤漆花心，配真丝流苏。另有同款冰箱贴，39元起。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link is-active" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="index.html#contact">预约订购</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -43,22 +50,22 @@
       </div>
 
       <div class="pdp">
-        <div class="pdp__media">
+        <div class="pdp__media reveal">
           <img src="assets/img/p-bookmark.svg" alt="花签黄铜书签：五瓣花形顶端与蚀刻小花" width="900" height="900">
         </div>
 
         <div class="pdp__info">
-          <span class="eyebrow">单品 05 · 器物</span>
-          <h1 class="h2 mt-4">花签 · 黄铜书签</h1>
-          <p class="pdp__en">Brass Bookmark</p>
-          <p style="color:var(--ink-soft);font-size:.94rem">一片黄铜，蚀刻出五瓣花冠的轮廓，顶端嵌一枚朱红烤漆花心。夹在书里，是一枚安静的城市标记。</p>
+          <span class="eyebrow reveal">单品 05 · 器物</span>
+          <h1 class="h2 mt-4 reveal">花签 · 黄铜书签</h1>
+          <p class="pdp__en reveal">Brass Bookmark</p>
+          <p class="reveal" style="color:var(--ink-soft);font-size:.94rem">一片黄铜，蚀刻出五瓣花冠的轮廓，顶端嵌一枚朱红烤漆花心。夹在书里，是一枚安静的城市标记。</p>
 
-          <div class="pdp__price">
+          <div class="pdp__price reveal">
             <span class="price">¥39</span>
             <span class="note">书签 ¥39 / 冰箱贴 ¥49 / 一对 ¥78</span>
           </div>
 
-          <table class="spec">
+          <table class="spec reveal">
             <tbody>
               <tr><th>尺寸</th><td>32 × 128 × 0.8 mm</td></tr>
               <tr><th>材质</th><td>H62 黄铜，拉丝面</td></tr>
@@ -69,12 +76,12 @@
             </tbody>
           </table>
 
-          <div class="pdp__actions">
+          <div class="pdp__actions reveal">
             <a class="btn btn--primary" href="index.html#contact">咨询与订购</a>
             <a class="btn btn--ghost" href="collection.html">返回全部单品</a>
           </div>
 
-          <div class="pdp__badges">
+          <div class="pdp__badges reveal">
             <span class="badge">黄铜蚀刻</span>
             <span class="badge">手工流苏</span>
             <span class="badge">两用款式</span>
@@ -206,7 +213,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

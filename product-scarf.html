@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>半城红 · 真丝方巾｜蟳埔花事</title>
 <meta name="description" content="半城红真丝方巾：900×900mm、16姆米桑蚕丝、数码印花、手工卷边。纹样取自簪花围俯视结构，刺桐红与蚝壳白构成泉州底色。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link is-active" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="index.html#contact">预约订购</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -43,22 +50,22 @@
       </div>
 
       <div class="pdp">
-        <div class="pdp__media">
+        <div class="pdp__media reveal">
           <img src="assets/img/p-scarf.svg" alt="半城红真丝方巾：刺桐红边框与花冠同心纹样" width="900" height="900">
         </div>
 
         <div class="pdp__info">
-          <span class="eyebrow">单品 03 · 织物</span>
-          <h1 class="h2 mt-4">半城红 · 真丝方巾</h1>
-          <p class="pdp__en">Silk Scarf · Half City Red</p>
-          <p style="color:var(--ink-soft);font-size:.94rem">把花冠从头顶取下来，铺成一方九〇公分的图案。刺桐红作边，蚝壳白作底，同心花环在布面上重新排布。</p>
+          <span class="eyebrow reveal">单品 03 · 织物</span>
+          <h1 class="h2 mt-4 reveal">半城红 · 真丝方巾</h1>
+          <p class="pdp__en reveal">Silk Scarf · Half City Red</p>
+          <p class="reveal" style="color:var(--ink-soft);font-size:.94rem">把花冠从头顶取下来，铺成一方九〇公分的图案。刺桐红作边，蚝壳白作底，同心花环在布面上重新排布。</p>
 
-          <div class="pdp__price">
+          <div class="pdp__price reveal">
             <span class="price">¥368</span>
             <span class="note">90 × 90 cm · 手工卷边</span>
           </div>
 
-          <table class="spec">
+          <table class="spec reveal">
             <tbody>
               <tr><th>尺寸</th><td>900 × 900 mm</td></tr>
               <tr><th>材质</th><td>16 姆米桑蚕丝（100% 桑蚕丝）</td></tr>
@@ -69,12 +76,12 @@
             </tbody>
           </table>
 
-          <div class="pdp__actions">
+          <div class="pdp__actions reveal">
             <a class="btn btn--primary" href="index.html#contact">咨询与订购</a>
             <a class="btn btn--ghost" href="collection.html">返回全部单品</a>
           </div>
 
-          <div class="pdp__badges">
+          <div class="pdp__badges reveal">
             <span class="badge">100% 桑蚕丝</span>
             <span class="badge">手工卷边</span>
             <span class="badge">数码印花</span>
@@ -215,7 +222,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

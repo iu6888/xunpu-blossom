@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>城市礼物｜蟳埔花事 · 六件泉州伴手礼</title>
 <meta name="description" content="蟳埔花事六件城市礼物：花冠发饰、香氛礼盒、真丝方巾、骨瓷对杯、黄铜花签与典藏礼盒。价格带 39—598 元，适合旅拍、节庆、商务与城市伴手礼。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link is-active" href="collection.html" aria-current="page">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="index.html#contact">预约订购</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -38,16 +45,16 @@
 
   <section class="page-hero">
     <div class="wrap">
-      <div class="crumbs">
+      <div class="crumbs reveal">
         <a href="index.html">首页</a><span>/</span><span>城市礼物</span>
       </div>
       <div class="page-hero__inner">
         <div>
-          <span class="eyebrow">城市礼物 · Collection</span>
-          <h1 class="display">六件<br>礼物</h1>
-          <p class="hero__en">Six ways to take Quanzhou home</p>
+          <span class="eyebrow reveal">城市礼物 · Collection</span>
+          <h1 class="display reveal">六件<br>礼物</h1>
+          <p class="hero__en reveal">Six ways to take Quanzhou home</p>
         </div>
-        <aside class="page-hero__aside">
+        <aside class="page-hero__aside reveal" data-delay="4">
           <p>从 39 元的黄铜花签，到 598 元的典藏礼盒。六个价格带、六个使用场景，共同回答一个问题：泉州可以被怎样带走？</p>
           <p>全部产品使用本地工艺与可量产结构，支持批量定制与图库授权。</p>
         </aside>
@@ -248,7 +255,7 @@
   <div class="modal__backdrop" data-modal-close></div>
   <div class="modal__panel">
     <button class="modal__close" type="button" data-modal-close aria-label="关闭弹层">×</button>
-    <span class="eyebrow">城市礼物 · Collection</span>
+    <span class="eyebrow reveal">城市礼物 · Collection</span>
     <h2 class="modal__title" id="cat-modal-title" data-modal-title>全部</h2>
     <p class="modal__count" data-modal-count></p>
     <div class="modal__grid" data-modal-grid></div>
@@ -256,8 +263,8 @@
   </div>
 </div>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
-<script src="assets/js/catalog.js?v=20261114" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
+<script src="assets/js/catalog.js?v=20261115" defer></script>
 </body>
 </html>

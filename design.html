@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>设计说明｜蟳埔花事 · 第八届「润物无声」参赛作品</title>
 <meta name="description" content="蟳埔花事设计说明：赛道一城市礼物、花韵文化主题。含文化提取、视觉系统、产品矩阵、结构与工艺、量产与成本、渠道场景与评审自评，完整呈现一件可落地的泉州城市礼物。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link" href="collection.html">城市礼物</a>
       <a class="nav__link is-active" href="design.html" aria-current="page">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="collection.html">选购礼盒</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -38,16 +45,16 @@
 
   <section class="page-hero">
     <div class="wrap">
-      <div class="crumbs">
+      <div class="crumbs reveal">
         <a href="index.html">首页</a><span>/</span><span>设计说明</span>
       </div>
       <div class="page-hero__inner">
         <div>
-          <span class="eyebrow">Design Rationale · 参赛作品说明</span>
-          <h1 class="display">设计<br>说明</h1>
-          <p class="hero__en">Xunpu Blossom · City Gift Collection</p>
+          <span class="eyebrow reveal">Design Rationale · 参赛作品说明</span>
+          <h1 class="display reveal">设计<br>说明</h1>
+          <p class="hero__en reveal">Xunpu Blossom · City Gift Collection</p>
         </div>
-        <aside class="page-hero__aside">
+        <aside class="page-hero__aside reveal" data-delay="4">
           <p>本页是作品的完整说明文档：从文化提取到视觉系统，从结构工艺到量产成本，逐项交代一件城市礼物是如何被设计出来、又如何被做出来的。</p>
           <p>赛道一「城市礼物」· 花韵文化主题 · 设计组</p>
         </aside>
@@ -76,7 +83,7 @@
         <div class="doc__body">
 
           <!-- 00 -->
-          <section id="overview">
+          <section id="overview" class="reveal">
             <div class="doc__h">
               <span class="num">00</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">项目概览</h2>
@@ -102,7 +109,7 @@
           </section>
 
           <!-- 01 -->
-          <section id="culture">
+          <section id="culture" class="reveal">
             <div class="doc__h">
               <span class="num">01</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">文化提取</h2>
@@ -128,7 +135,7 @@
           </section>
 
           <!-- 02 -->
-          <section id="visual">
+          <section id="visual" class="reveal">
             <div class="doc__h">
               <span class="num">02</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">视觉系统</h2>
@@ -180,7 +187,7 @@
           </section>
 
           <!-- 03 -->
-          <section id="matrix">
+          <section id="matrix" class="reveal">
             <div class="doc__h">
               <span class="num">03</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">产品矩阵</h2>
@@ -204,7 +211,7 @@
           </section>
 
           <!-- 04 -->
-          <section id="craft">
+          <section id="craft" class="reveal">
             <div class="doc__h">
               <span class="num">04</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">结构与工艺</h2>
@@ -231,7 +238,7 @@
           </section>
 
           <!-- 05 -->
-          <section id="cost">
+          <section id="cost" class="reveal">
             <div class="doc__h">
               <span class="num">05</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">量产与成本</span>
@@ -268,7 +275,7 @@
           </section>
 
           <!-- 06 -->
-          <section id="channel">
+          <section id="channel" class="reveal">
             <div class="doc__h">
               <span class="num">06</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">渠道与场景</h2>
@@ -303,7 +310,7 @@
           </section>
 
           <!-- 07 -->
-          <section id="review">
+          <section id="review" class="reveal">
             <div class="doc__h">
               <span class="num">07</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">评审维度自评</h2>
@@ -353,7 +360,7 @@
           </section>
 
           <!-- 08 -->
-          <section id="aigc">
+          <section id="aigc" class="reveal">
             <div class="doc__h">
               <span class="num">08</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">原创与 AIGC 声明</h2>
@@ -365,7 +372,7 @@
           </section>
 
           <!-- 09 -->
-          <section id="deliver">
+          <section id="deliver" class="reveal">
             <div class="doc__h">
               <span class="num">09</span>
               <h2 class="h2" style="font-size:clamp(1.3rem,2.4vw,1.8rem)">交付清单</h2>
@@ -393,7 +400,7 @@
   </section>
 
   <section class="cta-band">
-    <div class="wrap cta-band__inner">
+    <div class="wrap cta-band__inner reveal">
       <div>
         <h2>看完了说明，去看看实物</h2>
         <p>六件单品均已给出结构、材质与价格；如需打样与报价，可直接联系。</p>
@@ -446,7 +453,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

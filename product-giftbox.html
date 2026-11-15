@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>头顶花园 · 典藏礼盒｜蟳埔花事</title>
 <meta name="description" content="头顶花园典藏礼盒：花冠、香氛、真丝方巾、黄铜花签四件成套，亚麻内衬硬质礼盒，限量500套编号，附手写祝福卡。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link is-active" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="index.html#contact">预约订购</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -43,22 +50,22 @@
       </div>
 
       <div class="pdp">
-        <div class="pdp__media">
+        <div class="pdp__media reveal">
           <img src="assets/img/p-giftbox.svg" alt="头顶花园典藏礼盒：奶油色盒体、红色缎带与花冠徽标" width="900" height="900">
         </div>
 
         <div class="pdp__info">
-          <span class="eyebrow">单品 06 · 礼盒</span>
-          <h1 class="h2 mt-4">头顶花园 · 典藏礼盒</h1>
-          <p class="pdp__en">Collector's Gift Box</p>
-          <p style="color:var(--ink-soft);font-size:.94rem">花冠、香氛、方巾、花签四件成套，亚麻内衬，限量 500 套。附编号卡与手写祝福卡——一份可以寄出的泉州。</p>
+          <span class="eyebrow reveal">单品 06 · 礼盒</span>
+          <h1 class="h2 mt-4 reveal">头顶花园 · 典藏礼盒</h1>
+          <p class="pdp__en reveal">Collector's Gift Box</p>
+          <p class="reveal" style="color:var(--ink-soft);font-size:.94rem">花冠、香氛、方巾、花签四件成套，亚麻内衬，限量 500 套。附编号卡与手写祝福卡——一份可以寄出的泉州。</p>
 
-          <div class="pdp__price">
+          <div class="pdp__price reveal">
             <span class="price">¥598</span>
             <span class="note">限量 500 套 · 独立编号</span>
           </div>
 
-          <table class="spec">
+          <table class="spec reveal">
             <tbody>
               <tr><th>内含</th><td>花冠（含收纳袋）/ 花事三叠香氛 / 真丝方巾 / 黄铜花签</td></tr>
               <tr><th>礼盒</th><td>硬质盒 320 × 320 × 120 mm，亚麻内衬</td></tr>
@@ -68,12 +75,12 @@
             </tbody>
           </table>
 
-          <div class="pdp__actions">
+          <div class="pdp__actions reveal">
             <a class="btn btn--primary" href="index.html#contact">咨询与订购</a>
             <a class="btn btn--ghost" href="collection.html">返回全部单品</a>
           </div>
 
-          <div class="pdp__badges">
+          <div class="pdp__badges reveal">
             <span class="badge">四件成套</span>
             <span class="badge">限量编号</span>
             <span class="badge">手写祝福卡</span>
@@ -222,7 +229,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>

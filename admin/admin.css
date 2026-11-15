@@ -689,3 +689,236 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: .001ms !important; transition-duration: .001ms !important; }
 }
+
+/* ---------------- 卡片圆角：连续曲率 ---------------- */
+
+.login__card,
+.card,
+.kpi {
+  border-radius: 30px;
+  corner-shape: superellipse(4);
+}
+
+.kpi { border-radius: 26px; }
+
+
+/* ---------------- 去线条与按钮体系 ---------------- */
+
+.login__card,
+.card,
+.kpi {
+  border: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .7),
+    0 24px 46px -40px rgba(36, 31, 26, .5);
+}
+
+.login__mark,
+.side__logo {
+  border: 0;
+  background: rgba(168, 52, 43, .1);
+}
+
+.input {
+  border: 0;
+  background: rgba(234, 225, 208, .42);
+  box-shadow: inset 0 0 0 1px rgba(36, 31, 26, .06);
+}
+
+.input:focus {
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 162, 74, .55),
+    0 0 0 3px rgba(201, 162, 74, .16);
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(36, 31, 26, .05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+  transition: transform .22s ease, box-shadow .22s ease,
+              background-color .22s ease, color .22s ease;
+}
+
+.btn:hover {
+  background: rgba(36, 31, 26, .1);
+  color: var(--ink);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .5),
+    0 14px 24px -18px rgba(36, 31, 26, .8);
+}
+
+.btn--primary {
+  color: #FBF8F1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .18), rgba(255, 255, 255, 0) 58%),
+    linear-gradient(135deg, #B23C32 0%, #A8342B 46%, #8C2A23 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .28),
+    0 14px 26px -16px rgba(140, 40, 32, .55);
+}
+
+.btn--primary:hover {
+  color: #FBF8F1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .24), rgba(255, 255, 255, 0) 58%),
+    linear-gradient(135deg, #BC473C 0%, #AC372E 46%, #8F2A22 100%);
+  transform: translateY(-2px);
+}
+
+.btn--danger {
+  color: var(--red);
+  background: rgba(168, 52, 43, .1);
+}
+
+.btn--danger:hover { background: rgba(168, 52, 43, .16); }
+
+.chip { border: 0; background: rgba(36, 31, 26, .05); }
+.chip:hover { background: rgba(36, 31, 26, .1); }
+.chip.is-active { background: var(--ink); color: var(--paper); }
+
+.tag { border: 0; }
+
+.side { border-right: 1px solid rgba(36, 31, 26, .06); }
+.side__brand { border-bottom: 0; }
+.side__foot { border-top: 0; }
+
+.topbar { border-bottom: 1px solid rgba(36, 31, 26, .06); }
+
+.nav__item {
+  border-left: 0;
+  border-radius: 12px;
+}
+
+.nav__item.is-active {
+  border-left: 0;
+  background: rgba(168, 52, 43, .12);
+}
+
+.tbl th { border-bottom: 1px solid rgba(36, 31, 26, .08); }
+.tbl td { border-bottom: 1px solid rgba(36, 31, 26, .045); }
+
+.form-error {
+  border-left: 0;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+
+/* ---------------- 去面：平面按钮 ---------------- */
+.btn {
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  transition: color .24s ease, background-color .24s ease;
+}
+
+.btn:hover {
+  background: rgba(36, 31, 26, .05);
+  color: var(--ink);
+  transform: none;
+  box-shadow: none;
+}
+
+.btn--primary {
+  background: var(--red);
+  color: #FBF8F1;
+  box-shadow: none;
+}
+
+.btn--primary:hover {
+  background: var(--red-deep);
+  color: #FBF8F1;
+  transform: none;
+}
+
+.btn--danger {
+  background: transparent;
+  color: var(--red);
+}
+
+.btn--danger:hover { background: rgba(168, 52, 43, .08); }
+
+.chip {
+  border-radius: 8px;
+  background: transparent;
+}
+
+.chip:hover { background: rgba(36, 31, 26, .05); }
+
+.chip.is-active {
+  background: transparent;
+  color: var(--red-deep);
+  font-weight: 500;
+}
+
+.nav__item.is-active {
+  background: transparent;
+  color: var(--red-deep);
+  font-weight: 500;
+}
+
+.login__mark,
+.side__logo { background: transparent; }
+
+.input { background: transparent; }
+
+/* ---------------- 交互动效（对齐主站 token） ---------------- */
+.btn,
+.chip,
+.nav__item {
+  transition:
+    color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    background-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    transform var(--dur-instant, 100ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+}
+
+.btn:active,
+.chip:active,
+.nav__item:active { transform: scale(.97); }
+
+/* ---------- 内容不可选中 ----------
+   与前台同一条规则：除可编辑文本框外，后台的元素也一律 user-select: none。
+   如果需要在后台复制单号、地址，把下面这段的「例外」范围改回 body 即可。 */
+*,
+*::before,
+*::after {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea,
+[contenteditable="true"],
+[contenteditable=""],
+[contenteditable="plaintext-only"] {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+img,
+svg,
+picture,
+canvas,
+video,
+a,
+[role="button"] {
+  -webkit-user-drag: none;
+  -khtml-user-drag: none;
+  -moz-user-drag: none;
+  -o-user-drag: none;
+  user-drag: none;
+}
+
+
+
+
+

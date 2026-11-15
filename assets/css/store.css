@@ -32,6 +32,16 @@
 }
 .xb-cart-btn__count[hidden] { display: none; }
 
+/* 顶栏右上角按钮组：礼袋 + 账户 */
+.xb-header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: 14px;
+}
+.xb-header-actions .xb-cart-btn,
+.xb-header-actions .xb-account-btn { margin-left: 0; }
+
 /* 顶栏账户入口 */
 .xb-account-btn {
   display: inline-flex;
@@ -64,27 +74,41 @@
   inset: 0;
   z-index: 900;
   background: rgba(36, 31, 26, .42);
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
   opacity: 0;
   pointer-events: none;
   transition: opacity .24s ease;
 }
 .xb-overlay.is-open { opacity: 1; pointer-events: auto; }
 
+/* 礼袋弹窗：居中弹层（原右侧抽屉已移除） */
 .xb-drawer {
   position: fixed;
-  top: 0; right: 0;
+  top: 50%;
+  left: 50%;
   z-index: 901;
-  width: min(400px, 100%);
-  height: 100%;
+  width: min(560px, calc(100% - 40px));
+  max-height: min(88vh, 780px);
   display: flex;
   flex-direction: column;
   background: var(--paper, #F3EEE4);
-  border-left: 1px solid rgba(36, 31, 26, .14);
-  transform: translateX(102%);
-  transition: transform .32s cubic-bezier(.22, .8, .3, 1);
-  box-shadow: -40px 0 80px -60px rgba(36, 31, 26, .7);
+  opacity: 0;
+  visibility: hidden;              /* 关闭时不可 Tab 进入 */
+  pointer-events: none;
+  transform: translate(-50%, calc(-50% + 16px)) scale(.98);
+  transition: transform .34s cubic-bezier(.22, .8, .3, 1), opacity .24s ease, visibility 0s linear .34s;
+  box-shadow:
+    0 60px 120px -70px rgba(36, 31, 26, .75),
+    0 24px 60px -46px rgba(36, 31, 26, .5);
 }
-.xb-drawer.is-open { transform: none; }
+.xb-drawer.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate(-50%, -50%) scale(1);
+  transition: transform .34s cubic-bezier(.22, .8, .3, 1), opacity .24s ease, visibility 0s;
+}
 
 .xb-drawer__head {
   display: flex;
@@ -121,7 +145,8 @@
 }
 .xb-close:hover { border-color: var(--ink, #241F1A); color: var(--ink, #241F1A); }
 
-.xb-drawer__body { flex: 1; overflow-y: auto; padding: 16px 22px 22px; }
+.xb-drawer__body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 16px 26px 20px; }
+.xb-drawer__foot:empty { display: none; }   /* 空礼袋不留下一条空底栏 */
 .xb-drawer__foot {
   padding: 16px 22px 20px;
   border-top: 1px solid rgba(36, 31, 26, .1);
@@ -230,7 +255,10 @@
   font-size: .84rem;
   letter-spacing: .06em;
   cursor: pointer;
-  transition: all .18s ease;
+  transition:
+    background-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    border-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
 }
 .xb-btn:hover { background: rgba(36, 31, 26, .05); }
 .xb-btn--primary {
@@ -263,7 +291,11 @@
   font: inherit;
   font-size: .8rem;
   cursor: pointer;
-  transition: all .15s ease;
+  transition:
+    background-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    border-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    box-shadow var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
 }
 .xb-opt:hover { border-color: var(--ink, #241F1A); color: var(--ink, #241F1A); }
 .xb-opt.is-active {
@@ -371,12 +403,300 @@
 .xb-notice a { color: var(--gold, #C9A24A); text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 560px) {
-  .xb-cart-btn { margin-left: 6px; padding: 6px 10px; font-size: .76rem; }
+  .xb-cart-btn { padding: 6px 8px; font-size: .76rem; }
+  .xb-header-actions { margin-left: 4px; gap: 0; }
+  .xb-account-btn { padding: 6px 8px; font-size: .76rem; }
   .xb-form__row { grid-template-columns: 1fr; }
   .xb-buy .xb-btn { width: 100%; }
+
+  /* 弹窗在小屏铺满可用宽度，不再全屏抽屉 */
+  .xb-drawer {
+    width: calc(100% - 24px);
+    max-height: 86vh;
+  }
+  .xb-drawer__head { padding: 16px 18px 12px; }
+  .xb-drawer__body { padding: 12px 18px 16px; }
+  .xb-drawer__foot { padding: 14px 18px 16px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .xb-drawer { transition-duration: .001ms; }
   .xb-overlay { transition-duration: .001ms; }
 }
+
+/* ---------- 卡片圆角：连续曲率（superellipse） ---------- */
+.xb-drawer {
+  border-radius: 26px;
+  overflow: hidden;
+  corner-shape: superellipse(4);
+}
+
+.xb-line__img,
+.xb-opt { border-radius: 18px; corner-shape: superellipse(4); }
+
+.xb-buy__qty,
+.xb-field input,
+.xb-field select,
+.xb-field textarea { border-radius: 18px; }
+
+.xb-buy__qty { corner-shape: superellipse(4); }
+
+
+/* ---------- 去线条与按钮体系（与主站视觉一致） ---------- */
+.xb-cart-btn {
+  border: 0;
+  background: rgba(234, 225, 208, .58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+  transition: background-color .25s ease, color .25s ease, transform .25s ease;
+}
+
+.xb-cart-btn:hover {
+  background: rgba(168, 52, 43, .12);
+  color: var(--red, #A8342B);
+  transform: translateY(-1px);
+}
+
+.xb-account-btn { border: 0; }
+.xb-account-btn:hover { background: rgba(36, 31, 26, .05); }
+
+.xb-drawer { border-left: 0; }
+.xb-drawer__head { border-bottom: 1px solid rgba(36, 31, 26, .05); }
+.xb-drawer__foot { border-top: 1px solid rgba(36, 31, 26, .05); }
+
+.xb-close {
+  border: 0;
+  background: rgba(36, 31, 26, .06);
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+
+.xb-close:hover {
+  background: rgba(168, 52, 43, .14);
+  color: var(--red, #A8342B);
+  transform: rotate(90deg);
+}
+
+.xb-line { border-bottom: 1px solid rgba(36, 31, 26, .045); }
+
+.xb-qty {
+  border: 0;
+  background: rgba(234, 225, 208, .6);
+}
+
+.xb-sums__row--total {
+  border-top: 0;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(234, 225, 208, .5);
+}
+
+.xb-btn {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(36, 31, 26, .05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+  transition: transform .22s ease, box-shadow .22s ease,
+              background-color .22s ease, color .22s ease;
+}
+
+.xb-btn:hover {
+  background: rgba(36, 31, 26, .1);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .5),
+    0 14px 24px -18px rgba(36, 31, 26, .8);
+}
+
+.xb-btn--primary {
+  color: #FBF8F1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .2), rgba(255, 255, 255, 0) 58%),
+    linear-gradient(135deg, #B23C32 0%, #A8342B 46%, #8C2A23 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .3),
+    0 14px 26px -14px rgba(140, 40, 32, .6);
+}
+
+.xb-btn--primary:hover {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .26), rgba(255, 255, 255, 0) 58%),
+    linear-gradient(135deg, #BC473C 0%, #AC372E 46%, #8F2A22 100%);
+  transform: translateY(-2px);
+}
+
+.xb-btn:disabled { transform: none; }
+
+.xb-opt {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(234, 225, 208, .6);
+}
+
+.xb-opt:hover {
+  background: rgba(234, 225, 208, .95);
+  color: var(--ink, #241F1A);
+}
+
+.xb-opt.is-active {
+  background: rgba(168, 52, 43, .14);
+  color: var(--red-deep, #8C2A23);
+  box-shadow: none;
+}
+
+.xb-buy__qty {
+  border: 0;
+  background: rgba(234, 225, 208, .6);
+}
+
+.xb-field input,
+.xb-field select,
+.xb-field textarea {
+  border: 0;
+  background: rgba(234, 225, 208, .45);
+  box-shadow: inset 0 0 0 1px rgba(36, 31, 26, .06);
+}
+
+.xb-field input:focus,
+.xb-field select:focus,
+.xb-field textarea:focus {
+  box-shadow:
+    inset 0 0 0 1px rgba(201, 162, 74, .55),
+    0 0 0 3px rgba(201, 162, 74, .18);
+}
+
+.xb-error {
+  border-left: 0;
+  border-radius: 14px;
+  padding: 9px 12px;
+}
+
+.xb-state__mark {
+  border: 0;
+  background: rgba(201, 162, 74, .16);
+}
+
+.xb-state__no {
+  border: 0;
+  border-radius: 12px;
+  background: rgba(36, 31, 26, .05);
+}
+
+
+/* ---------- 去面：平面按钮，取消柔底胶囊 ---------- */
+.xb-cart-btn,
+.xb-account-btn {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.xb-cart-btn:hover {
+  background: transparent;
+  color: var(--red, #A8342B);
+  transform: none;
+}
+
+.xb-close {
+  background: transparent;
+  color: var(--ink-soft, #5C534A);
+}
+
+.xb-close:hover {
+  background: transparent;
+  color: var(--red, #A8342B);
+  transform: none;
+}
+
+.xb-btn {
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+  transition: color .24s ease, background-color .24s ease;
+}
+
+.xb-btn:hover {
+  background: rgba(36, 31, 26, .05);
+  transform: none;
+  box-shadow: none;
+}
+
+.xb-btn--primary {
+  background: var(--red, #A8342B);
+  color: #FBF8F1;
+  box-shadow: none;
+}
+
+.xb-btn--primary:hover {
+  background: var(--red-deep, #8C2A23);
+  transform: none;
+}
+
+.xb-opt {
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft, #5C534A);
+}
+
+.xb-opt:hover {
+  background: transparent;
+  color: var(--ink, #241F1A);
+}
+
+.xb-opt.is-active {
+  background: transparent;
+  color: var(--red-deep, #8C2A23);
+  font-weight: 600;
+}
+
+.xb-qty,
+.xb-buy__qty { background: transparent; }
+
+.xb-field input,
+.xb-field select,
+.xb-field textarea {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(36, 31, 26, .12);
+}
+
+.xb-sums__row--total {
+  background: none;
+  padding: 10px 0 0;
+}
+
+.xb-state__mark,
+.xb-state__no { background: transparent; }
+
+/* ---------- 交互动效（对齐主站 token） ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  .xb-drawer {
+    transition:
+      transform var(--dur-slow, 360ms) var(--ease-drawer, cubic-bezier(.32, .72, 0, 1)),
+      opacity var(--dur-base, 220ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+  }
+
+  .xb-overlay {
+    transition: opacity var(--dur-base, 220ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+  }
+}
+
+.xb-btn,
+.xb-btn--primary,
+.xb-opt,
+.xb-cart-btn,
+.xb-close {
+  transition:
+    color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    background-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    transform var(--dur-instant, 100ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+}
+
+.xb-btn:active,
+.xb-btn--primary:active,
+.xb-opt:active,
+.xb-cart-btn:active,
+.xb-close:active { transform: scale(.97); }
+
+
+
+

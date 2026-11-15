@@ -218,7 +218,10 @@
   text-align: left;
   cursor: pointer;
   border-radius: 2px;
-  transition: all .14s ease;
+  transition:
+    background-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    border-left-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
 }
 .acct-menu button:hover { background: rgba(36, 31, 26, .045); color: var(--ink, #241F1A); }
 .acct-menu button.is-active {
@@ -382,3 +385,242 @@
   .acct-hero { padding-top: 30px; }
   .acct-body { padding-top: 22px; }
 }
+
+/* ---------- 卡片圆角：连续曲率（superellipse） ---------- */
+.acct-card {
+  border-radius: 36px;
+  corner-shape: superellipse(4);
+}
+
+.acct-order {
+  border-radius: 30px;
+  corner-shape: superellipse(4);
+}
+
+.acct-stats {
+  border-radius: 24px;
+  overflow: hidden;
+  corner-shape: superellipse(4);
+}
+
+.acct-item img,
+.acct-empty { border-radius: 18px; corner-shape: superellipse(4); }
+
+
+/* ---------- 去线条与按钮体系（与主站视觉一致） ---------- */
+.acct-card {
+  border: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .7),
+    0 26px 52px -44px rgba(60, 40, 25, .6);
+}
+
+.acct-tabs {
+  border-bottom: 0;
+  gap: 6px;
+}
+
+.acct-tabs button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  transition: color .2s ease, background-color .25s ease;
+}
+
+.acct-tabs button:hover { background: rgba(36, 31, 26, .05); }
+
+.acct-tabs button.is-active {
+  background: rgba(168, 52, 43, .12);
+  color: var(--red-deep, #8C2A23);
+}
+
+.acct-tabs button.is-active::after { display: none; }
+
+.acct-order {
+  border: 0;
+  box-shadow: 0 20px 40px -38px rgba(60, 40, 25, .7);
+}
+
+.acct-order__body,
+.acct-order__foot { border-top: 0; }
+
+.acct-stats {
+  border: 0;
+  gap: 6px;
+  background: transparent;
+}
+
+.acct-stats > div { background: rgba(234, 225, 208, .4); }
+.acct-stats > div:first-child { border-radius: 16px 0 0 16px; }
+.acct-stats > div:last-child { border-radius: 0 16px 16px 0; }
+
+.acct-menu button {
+  border-left: 0;
+  border-radius: 14px;
+  padding-left: 12px;
+}
+
+.acct-menu button.is-active {
+  border-left: 0;
+  background: rgba(168, 52, 43, .12);
+}
+
+.acct-panel__head { border-bottom: 0; }
+
+.acct-item { border-bottom: 1px solid rgba(36, 31, 26, .045); }
+
+.acct-chip { border: 0; }
+
+.acct-alert {
+  border-left: 0;
+  border-radius: 14px;
+  padding: 10px 14px;
+}
+
+.acct-note {
+  border-left: 0;
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.acct-switch { border-top: 0; }
+
+.acct-empty {
+  border: 0;
+  background: rgba(234, 225, 208, .35);
+}
+
+
+/* ---------- 去面：平面按钮与无底文字块 ---------- */
+.acct-tabs button {
+  padding: 8px 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.acct-tabs button:hover {
+  background: transparent;
+  color: var(--ink, #241F1A);
+}
+
+.acct-tabs button.is-active {
+  background: transparent;
+  color: var(--red-deep, #8C2A23);
+  font-weight: 500;
+}
+
+.acct-tabs { gap: 22px; }
+
+.acct-menu button.is-active { background: transparent; }
+
+.acct-stats > div { background: transparent; }
+
+.acct-stats > div:first-child,
+.acct-stats > div:last-child { border-radius: 0; }
+
+.acct-empty { background: transparent; }
+
+.acct-order__head { background: transparent; }
+
+/* ---------- 交互动效（对齐主站 token） ---------- */
+.acct-tabs button,
+.acct-menu button,
+.acct-chip {
+  transition:
+    color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    background-color var(--dur-fast, 150ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+    transform var(--dur-instant, 100ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+}
+
+.acct-tabs button:active,
+.acct-menu button:active { transform: scale(.97); }
+
+.acct-order {
+  transition: box-shadow var(--dur-base, 220ms) var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+}
+
+/* ---------- 浮动标签输入框 ----------
+   标签平常躺在框里；聚焦或有内容时缩小、浮到框线上（骑住边线、在边线开槽）并常驻。
+   说明文字排在框下方（不再是 placeholder），框上不再单独一行标题。 */
+.acct-form { gap: 2px; }
+
+.acct-form .xb-field {
+  position: relative;
+  display: block;
+  padding-top: 12px;          /* 给浮到框线上的标签留位，浮起时不推动下面的行 */
+}
+
+.acct-form .xb-field input {
+  width: 100%;
+  height: 46px;
+  padding: 0 17px;
+  font-size: .92rem;
+  line-height: 46px;
+  border-radius: 16px;
+}
+
+.acct-form .xb-field .xb-field__label {
+  position: absolute;
+  left: 17px;
+  top: 12px;
+  height: 46px;
+  line-height: 46px;
+  padding: 0 5px;
+  margin-left: -5px;          /* 补回内边距，文字仍与输入内容对齐 */
+  font-size: .82rem;          /* 静息态比输入内容小一档，不抢眼睛 */
+  color: var(--ink-mute, #8A8074);
+  pointer-events: none;       /* 点标签等于点输入框 */
+  transform-origin: left center;
+  transition: transform 220ms var(--ease-standard, cubic-bezier(.22, 1, .36, 1)),
+              color 220ms var(--ease-standard, cubic-bezier(.22, 1, .36, 1));
+  will-change: transform;
+  isolation: isolate;         /* 让下层的缺口底色只退到文字背后，不跑到输入框后面 */
+}
+
+/* 缺口底色：只有文字这一条带宽（16px），跟着标签一起动。
+   静息时落在框内中部，碰不到上下框线；浮起时正好骑在框线上把线咬开。 */
+.acct-form .xb-field .xb-field__label::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 16px;
+  margin-top: -8px;
+  background: #FBF8F1;        /* 与卡片同色 */
+  border-radius: 3px;
+  z-index: -1;
+}
+
+/* 聚焦 或 已经有内容：缩小、浮到框线上（骑住边线），一直显示 */
+.acct-form .xb-field:focus-within .xb-field__label,
+.acct-form .xb-field.is-filled .xb-field__label {
+  transform: translateY(-23px) scale(.88);   /* .82rem × .88 ≈ 11.5px，与说明文字同号 */
+  color: var(--ink-soft, #5C534A);
+}
+
+/* 正在输入：标签跟着聚焦色一起变深 */
+.acct-form .xb-field:focus-within .xb-field__label {
+  color: var(--ink, #241F1A);
+}
+
+.acct-form .xb-field .xb-field__hint {
+  display: block;
+  margin: 3px 2px 0 17px;
+  font-size: .72rem;
+  line-height: 1.5;
+  color: var(--ink-mute, #8A8074);
+}
+
+.acct-form .xb-field input:disabled {
+  color: var(--ink-mute, #8A8074);
+  -webkit-text-fill-color: var(--ink-mute, #8A8074);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .acct-form .xb-field .xb-field__label { transition: none; }
+}
+
+
+
+
+

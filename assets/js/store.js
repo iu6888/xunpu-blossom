@@ -7,7 +7,7 @@
   'use strict';
 
   var API = '';
-  var state = { cart: null, product: null, variant: null, qty: 1, view: 'cart', busy: false, contact: null, customer: null };
+  var state = { cart: null, product: null, variant: null, qty: 1, view: 'cart', busy: false, contact: null, customer: null, authReady: null };
 
   var els = {};
   var doc = document;
@@ -52,16 +52,21 @@
   }
 
   const slugFromPath = (function () {
+    // 独立商品页：product-garland.html → garland
     var m = location.pathname.match(/product-([a-z0-9-]+)\.html$/i);
     if (m) return m[1];
-    // 通用详情页 product.html?slug=xxx
-    var q = null;
-    try {
-      q = new URLSearchParams(location.search).get('slug');
-    } catch (err) {
-      q = null;
+    // 通用商品页：product.html?slug=item-123456
+    if (/\/product\.html$/i.test(location.pathname)) {
+      var q = '';
+      try {
+        q = new URLSearchParams(location.search).get('slug') || '';
+      } catch (err) {
+        q = '';
+      }
+      q = q.replace(/[^a-zA-Z0-9-]/g, '');
+      return q || null;
     }
-    return q && /^[a-z0-9-]+$/i.test(q) ? q : null;
+    return null;
   })();
 
   /* ---------------------------------------------------------------- */
@@ -104,7 +109,32 @@
     els.drawer.classList.add('is-open');
     doc.body.style.overflow = 'hidden';
     state.view = 'cart';
-    refreshCart();
+
+    /* 礼袋需登录：先确认身份再决定是购物袋还是登录引导 */
+    var ready = state.authReady || Promise.resolve(state.customer || null);
+    ready.then(function (customer) {
+      if (customer) {
+        state.customer = customer;
+        refreshCart();
+        return;
+      }
+      renderLoginGate();
+    });
+  }
+
+  /** 未登录时的礼袋面板：只给登录引导，不展示任何购物袋内容 */
+  function renderLoginGate() {
+    els.body.innerHTML =
+      '<div class="xb-state">' +
+        '<div class="xb-state__mark">花</div>' +
+        '<h3>登录后才能使用礼袋</h3>' +
+        '<p>礼袋会存进你的账户，<br>换台设备也能接着挑。</p>' +
+        '<div class="xb-state__actions">' +
+          '<a class="xb-btn xb-btn--primary xb-btn--sm" href="account.html">去登录 / 注册</a>' +
+        '</div>' +
+      '</div>';
+    els.foot.innerHTML = '';
+    state.view = 'gate';
   }
 
   function close() {
@@ -113,34 +143,43 @@
     doc.body.style.overflow = '';
   }
 
-  /** 顶栏礼袋按钮 */
-  function mountCartButton() {
-    var host = doc.querySelector('.site-header__inner .nav') || doc.querySelector('.site-header__inner');
-    if (!host || doc.querySelector('.xb-cart-btn')) return;
-
-    var btn = el('button', 'xb-cart-btn',
-      '礼袋<span class="xb-cart-btn__count" hidden>0</span>');
+  /** 顶栏礼袋入口：右上角按钮 + 数量角标 */
+  function mountCartEntry(host) {
+    if (!host || host.querySelector('.xb-cart-btn')) return;
+    var btn = el('button', 'xb-cart-btn', '礼袋<span class="xb-cart-btn__count" hidden></span>');
     btn.type = 'button';
     btn.setAttribute('aria-label', '打开礼袋');
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      open();
-    });
-
-    if (host.classList.contains('nav')) host.appendChild(btn);
-    else host.appendChild(btn);
-
-    els.cartBtn = btn;
+    btn.addEventListener('click', open);
+    host.appendChild(btn);
     els.count = btn.querySelector('.xb-cart-btn__count');
+  }
 
-    // 账户入口：未登录显示「登录」，已登录显示昵称
-    if (!doc.querySelector('.xb-account-btn')) {
-      var acct = el('a', 'xb-account-btn', '登录');
-      acct.href = 'account.html';
-      acct.setAttribute('aria-label', '我的账户');
-      host.appendChild(acct);
-      els.accountBtn = acct;
+  /** 顶栏右上角按钮组：礼袋 + 账户，插在汉堡菜单之前 */
+  function mountHeaderActions() {
+    var header = doc.querySelector('.site-header__inner');
+    if (!header) return;
+    var actions = header.querySelector('.xb-header-actions');
+    if (!actions) {
+      actions = el('div', 'xb-header-actions');
+      var toggle = header.querySelector('.nav-toggle');
+      if (toggle) header.insertBefore(actions, toggle);
+      else header.appendChild(actions);
     }
+    mountCartEntry(actions);
+    mountAccountEntry(actions);
+  }
+
+  /** 顶栏账户入口 */
+  function mountAccountEntry(host) {
+    host = host || doc.querySelector('.site-header__inner');
+    if (!host || doc.querySelector('.xb-account-btn')) return;
+
+    // 未登录显示「登录」，已登录显示昵称
+    var acct = el('a', 'xb-account-btn', '登录');
+    acct.href = 'account.html';
+    acct.setAttribute('aria-label', '我的账户');
+    host.appendChild(acct);
+    els.accountBtn = acct;
   }
 
   function paintAccount(customer) {
@@ -160,8 +199,9 @@
 
   function updateCount(n) {
     if (!els.count) return;
-    els.count.hidden = !n;
-    els.count.textContent = String(n);
+    var show = !!state.customer && Number(n) > 0;   /* 未登录不显示角标 */
+    els.count.hidden = !show;
+    els.count.textContent = show ? String(n) : '';
   }
 
   /* ---------------------------------------------------------------- */
@@ -253,13 +293,16 @@
     now.disabled = out;
     add.textContent = out ? '暂时售罄' : '加入礼袋';
     if (els.buyNote) {
-      els.buyNote.textContent = out
-        ? '这一款暂时售罄，可联系品牌预约补货。'
-        : (v.stock <= 5 ? '仅剩 ' + v.stock + ' 件 · 手工制作，售完需等下一批。' : '泉州本地工艺 · 现货 7 天内发出');
+      els.buyNote.textContent = !state.customer
+        ? '登录后才能加入礼袋 · 礼袋会存进你的账户'
+        : (out
+          ? '这一款暂时售罄，可联系品牌预约补货。'
+          : (v.stock <= 5 ? '仅剩 ' + v.stock + ' 件 · 手工制作，售完需等下一批。' : '泉州本地工艺 · 现货 7 天内发出'));
     }
   }
 
   function addToCart(goCheckout) {
+    if (!state.customer) { open(); return; }        /* 礼袋需登录：未登录直接给登录引导 */
     if (!state.variant || state.busy) return;
     state.busy = true;
     var btn = doc.querySelector('[data-add]');
@@ -537,20 +580,43 @@
 
   function start() {
     build();
-    mountCartButton();
+    mountHeaderActions();
 
-    api('/api/cart').then(function (cart) {
-      state.cart = cart;
-      updateCount(cart.count);
-    }).catch(function () { /* 静默 */ });
+    /* 身份先行：礼袋是否可用、角标是否显示都由它决定 */
+    state.authReady = api('/api/auth/me')
+      .then(function (data) {
+        paintAccount(data.customer);
+        return data.customer || null;
+      })
+      .catch(function () {
+        paintAccount(null);
+        return null;
+      });
 
-    api('/api/auth/me')
-      .then(function (data) { paintAccount(data.customer); })
-      .catch(function () { paintAccount(null); });
+    state.authReady.then(function (customer) {
+      if (customer) {
+        api('/api/cart').then(function (cart) {
+          state.cart = cart;
+          updateCount(cart.count);
+        }).catch(function () { /* 静默 */ });
+      }
+      syncBuyState();   /* 商品页：未登录时把提示换成「登录后才能加入礼袋」 */
+    });
 
     // 账户页登录 / 退出后同步顶栏
     window.addEventListener('xb:auth', function (e) {
       paintAccount(e.detail);
+      state.authReady = Promise.resolve(e.detail || null);
+      if (e.detail) {
+        api('/api/cart').then(function (cart) {
+          state.cart = cart;
+          updateCount(cart.count);
+        }).catch(function () {});
+      } else {
+        state.cart = null;
+        updateCount(0);
+      }
+      syncBuyState();
     });
 
     // 账户页登录/退出后同步角标

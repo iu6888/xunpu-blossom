@@ -2,16 +2,23 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<script>document.documentElement.className += ' js';</script>
+<script>document.documentElement.className += ' js reveal-boot' + (function () { try { return window.sessionStorage.getItem('xunpu:wipe') === '1' ? ' wipe-arrive' : ' intro-boot'; } catch (e) { return ' intro-boot'; } })();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>蚝壳月 · 骨瓷对杯｜蟳埔花事</title>
 <meta name="description" content="蚝壳月骨瓷对杯：德化骨瓷220ml×2，杯身下半部浮雕蚝壳厝墙面肌理，上半部一轮花冠暗纹，手工描金。">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/store.css">
+<link rel="stylesheet" href="assets/css/style.css?v=20261265">
+<link rel="stylesheet" href="assets/css/store.css?v=20261257">
 </head>
 <body>
+<!-- 页面转场幕布（无框架）：点击站内链接时自下而上覆盖，新页面落地后继续向上离开 -->
+<div class="wipe" id="wipe" aria-hidden="true"></div>
+<div class="wipe__loader" aria-hidden="true">
+  <canvas class="wipe__canvas" width="92" height="92"></canvas>
+  <span class="wipe__label">蟳埔花事</span>
+  <span class="wipe__sub">XUNPU BLOSSOM</span>
+</div>
 <a class="skip-link" href="#main">跳到主要内容</a>
 
 <header class="site-header">
@@ -24,11 +31,11 @@
       </span>
     </a>
     <nav class="nav" id="nav" aria-label="主导航">
+      <a class="nav__link" href="index.html">花事开篇</a>
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link is-active" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
       <a class="nav__link" href="index.html#contact">合作联系</a>
-      <a class="nav__cta" href="index.html#contact">预约订购</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
   </div>
@@ -43,22 +50,22 @@
       </div>
 
       <div class="pdp">
-        <div class="pdp__media">
+        <div class="pdp__media reveal">
           <img src="assets/img/p-cup.svg" alt="蚝壳月骨瓷对杯：白色杯身带蚝壳肌理与红色花冠纹" width="900" height="900">
         </div>
 
         <div class="pdp__info">
-          <span class="eyebrow">单品 04 · 器物</span>
-          <h1 class="h2 mt-4">蚝壳月 · 骨瓷对杯</h1>
-          <p class="pdp__en">Bone China Cup Pair</p>
-          <p style="color:var(--ink-soft);font-size:.94rem">杯身下半部是蚝壳厝的墙面——一片片海蛎壳以弧度咬合；上半部是一轮花冠暗纹。喝茶的时候，村子与花园同时在手心。</p>
+          <span class="eyebrow reveal">单品 04 · 器物</span>
+          <h1 class="h2 mt-4 reveal">蚝壳月 · 骨瓷对杯</h1>
+          <p class="pdp__en reveal">Bone China Cup Pair</p>
+          <p class="reveal" style="color:var(--ink-soft);font-size:.94rem">杯身下半部是蚝壳厝的墙面——一片片海蛎壳以弧度咬合；上半部是一轮花冠暗纹。喝茶的时候，村子与花园同时在手心。</p>
 
-          <div class="pdp__price">
+          <div class="pdp__price reveal">
             <span class="price">¥298</span>
             <span class="note">一对装 · 220ml × 2</span>
           </div>
 
-          <table class="spec">
+          <table class="spec reveal">
             <tbody>
               <tr><th>容量</th><td>220 ml × 2</td></tr>
               <tr><th>材质</th><td>德化骨瓷，透光温润</td></tr>
@@ -69,12 +76,12 @@
             </tbody>
           </table>
 
-          <div class="pdp__actions">
+          <div class="pdp__actions reveal">
             <a class="btn btn--primary" href="index.html#contact">咨询与订购</a>
             <a class="btn btn--ghost" href="collection.html">返回全部单品</a>
           </div>
 
-          <div class="pdp__badges">
+          <div class="pdp__badges reveal">
             <span class="badge">德化骨瓷</span>
             <span class="badge">浮雕肌理</span>
             <span class="badge">手工描金</span>
@@ -205,7 +212,7 @@
   </div>
 </footer>
 
-<script src="assets/js/main.js?v=20261106" defer></script>
-<script src="assets/js/store.js?v=20261111" defer></script>
+<script src="assets/js/main.js?v=20261270" defer></script>
+<script src="assets/js/store.js?v=20261258" defer></script>
 </body>
 </html>
