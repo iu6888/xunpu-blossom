@@ -48,7 +48,19 @@ const MIME = {
   '.xml': 'application/xml; charset=utf-8',
   '.webmanifest': 'application/manifest+json',
   '.pdf': 'application/pdf',
-  '.csv': 'text/csv; charset=utf-8'
+  '.csv': 'text/csv; charset=utf-8',
+  /* 音视频：缺了这几项会退成 application/octet-stream，
+     再加上 nosniff，浏览器会直接拒绝播放 */
+  '.mp3': 'audio/mpeg',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.ogg': 'audio/ogg',
+  '.oga': 'audio/ogg',
+  '.opus': 'audio/ogg',
+  '.wav': 'audio/wav',
+  '.flac': 'audio/flac',
+  '.mp4': 'video/mp4',
+  '.webm': 'video/webm'
 };
 
 function mimeFor(filePath) {

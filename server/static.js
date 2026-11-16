@@ -79,20 +79,50 @@ function sendFile(req, res, filePath, relForMime, { cacheSeconds } = {}) {
   const stat = statSafe(filePath);
   if (!stat || !stat.isFile()) return false;
 
+  const total = stat.size;
   const headers = headersFor(relForMime || filePath, stat, { cacheSeconds });
+  headers['Accept-Ranges'] = 'bytes';
+
   const inm = req.headers['if-none-match'];
-  if (inm && inm === headers.ETag) {
+  if (inm && inm === headers.ETag && !req.headers.range) {
     res.writeHead(304, { ETag: headers.ETag, 'Cache-Control': headers['Cache-Control'] });
     res.end();
     return true;
   }
 
-  res.writeHead(200, headers);
+  /* 支持 Range 请求：音视频流式播放（iOS Safari 强制要求）、大文件续传都要靠它 */
+  let start = 0;
+  let end = total - 1;
+  let status = 200;
+
+  const rangeHeader = req.headers.range;
+  if (typeof rangeHeader === 'string') {
+    const m = /^bytes=(\d*)-(\d*)$/.exec(rangeHeader.trim());
+    if (m && (m[1] !== '' || m[2] !== '')) {
+      if (m[1] === '') {
+        // bytes=-500 → 末尾 500 字节
+        start = Math.max(0, total - Number(m[2]));
+      } else {
+        start = Number(m[1]);
+        if (m[2] !== '') end = Math.min(Number(m[2]), total - 1);
+      }
+      if (!Number.isFinite(start) || !Number.isFinite(end) || start > end || start >= total) {
+        res.writeHead(416, { 'Content-Range': `bytes */${total}`, 'Accept-Ranges': 'bytes' });
+        res.end();
+        return true;
+      }
+      status = 206;
+      headers['Content-Range'] = `bytes ${start}-${end}/${total}`;
+      headers['Content-Length'] = String(end - start + 1);
+    }
+  }
+
+  res.writeHead(status, headers);
   if (req.method === 'HEAD') {
     res.end();
     return true;
   }
-  const stream = fs.createReadStream(filePath);
+  const stream = fs.createReadStream(filePath, { start, end });
   stream.on('error', () => {
     if (!res.writableEnded) res.destroy();
   });

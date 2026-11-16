@@ -25,3 +25,10 @@ runtime/
 # 系统文件
 .DS_Store
 Thumbs.db
+
+# 背景音乐：体积大，且多为有版权素材，不入库
+# 部署时 package.sh 仍会打包它，只是不提交到 git
+assets/audio/*.mp3
+assets/audio/*.m4a
+assets/audio/*.ogg
+assets/audio/*.wav
