@@ -166,7 +166,7 @@
   const state = {
     view: 'dashboard',
     orderFilter: { status: '', q: '', from: '', to: '', page: 1 },
-    customerFilter: { q: '', page: 1 },
+    customerFilter: { q: '', status: '', sort: 'newest', page: 1 },
     inquiryFilter: { status: '', type: '', page: 1 }
   };
 
@@ -785,6 +785,8 @@
     const f = state.customerFilter;
     const params = new URLSearchParams();
     if (f.q) params.set('q', f.q);
+    if (f.status) params.set('status', f.status);
+    params.set('sort', f.sort || 'newest');
     params.set('page', String(f.page));
     params.set('limit', '20');
 
@@ -792,7 +794,7 @@
     const view$ = $('#view');
 
     const rows = data.items.length ? data.items.map((c) => `
-      <tr data-customer="${c.id}">
+      <tr data-customer="${c.id}" class="is-clickable">
         <td>
           <div>${esc(c.nickname)}</div>
           <div class="muted small">${esc(c.phoneMasked)}</div>
@@ -818,8 +820,20 @@
     view$.innerHTML = `<div id="customers-root">
       <div class="toolbar">
         <div class="search"><input class="input" id="cust-q" placeholder="手机号 / 昵称 / 邮箱" value="${esc(f.q)}"></div>
+        <select class="input" id="cust-status" style="max-width:132px">
+          <option value="">全部状态</option>
+          <option value="active" ${f.status === 'active' ? 'selected' : ''}>正常</option>
+          <option value="disabled" ${f.status === 'disabled' ? 'selected' : ''}>已停用</option>
+        </select>
+        <select class="input" id="cust-sort" style="max-width:140px">
+          <option value="newest" ${!f.sort || f.sort === 'newest' ? 'selected' : ''}>最新注册</option>
+          <option value="spent" ${f.sort === 'spent' ? 'selected' : ''}>消费最高</option>
+          <option value="orders" ${f.sort === 'orders' ? 'selected' : ''}>订单最多</option>
+          <option value="login" ${f.sort === 'login' ? 'selected' : ''}>最近登录</option>
+        </select>
         <div class="toolbar__grow"></div>
-        <span class="small muted">共 ${data.total} 位顾客</span>
+        <button class="btn btn--sm" id="cust-export">导出 CSV</button>
+        <span class="small muted">共 ${data.total} 位 · 正常 ${data.stats ? data.stats.active : '—'} · 停用 ${data.stats ? data.stats.disabled : '—'}</span>
       </div>
       <div class="card">
         <div class="table-wrap">
@@ -845,6 +859,19 @@
       f.q = e.target.value.trim();
       f.page = 1;
       goto('customers');
+    });
+    $('#cust-status').addEventListener('change', (e) => {
+      f.status = e.target.value;
+      f.page = 1;
+      goto('customers');
+    });
+    $('#cust-sort').addEventListener('change', (e) => {
+      f.sort = e.target.value;
+      f.page = 1;
+      goto('customers');
+    });
+    $('#cust-export').addEventListener('click', () => {
+      window.open('/api/admin/customers.csv', '_blank');
     });
     $('#cprev').addEventListener('click', () => { f.page = Math.max(1, f.page - 1); goto('customers'); });
     $('#cnext').addEventListener('click', () => { f.page += 1; goto('customers'); });
@@ -874,6 +901,99 @@
           toast('已删除');
           goto('customers');
         } catch (ex) { toast(ex.message, true); }
+        return;
+      }
+
+      // 点整行看详情
+      const tr = e.target.closest('[data-customer]');
+      if (tr) openCustomer(Number(tr.dataset.customer));
+    });
+  }
+
+  /* 顾客详情：基本资料 + 消费汇总 + 订单历史 + 重置密码 */
+  async function openCustomer(id) {
+    let d;
+    try {
+      d = await api('/api/admin/customers/' + id);
+    } catch (ex) {
+      return toast(ex.message, true);
+    }
+    const c = d.customer;
+    const s = d.summary;
+    const DAY = (v) => (v ? timeText(v) : '—');
+
+    const orderRows = d.orders.length
+      ? d.orders.map((o) => `
+        <tr>
+          <td class="small">${esc(o.orderNo)}</td>
+          <td class="small">${esc(o.statusText)}</td>
+          <td class="num">${o.totalText}</td>
+          <td class="small muted nowrap">${DAY(o.createdAt)}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" class="tbl__empty">该顾客还没有下单</td></tr>';
+
+    openModal('顾客详情', `
+      <div class="kv" style="grid-template-columns:78px 1fr">
+        <dt>昵称</dt><dd>${esc(c.nickname || '—')}</dd>
+        <dt>手机号</dt><dd>${esc(c.phone)}</dd>
+        <dt>邮箱</dt><dd>${esc(c.email || '—')}</dd>
+        <dt>状态</dt><dd>${c.status === 'active' ? '正常' : '已停用'}</dd>
+        <dt>注册</dt><dd>${DAY(c.createdAt)}</dd>
+        <dt>登录</dt><dd>${c.lastLoginAt ? DAY(c.lastLoginAt) : '从未登录'}</dd>
+      </div>
+      <div class="row-2" style="margin:16px 0 10px">
+        <div class="card" style="padding:12px 14px">
+          <div class="small muted">订单数</div>
+          <div style="font-size:20px;margin-top:2px">${s.orders}</div>
+        </div>
+        <div class="card" style="padding:12px 14px">
+          <div class="small muted">累计消费</div>
+          <div style="font-size:20px;margin-top:2px">${s.spentText}</div>
+        </div>
+      </div>
+      <div class="row-2" style="margin-bottom:16px">
+        <div class="card" style="padding:12px 14px">
+          <div class="small muted">客单价</div>
+          <div style="font-size:16px;margin-top:2px">${s.avgText}</div>
+        </div>
+        <div class="card" style="padding:12px 14px">
+          <div class="small muted">礼袋里还留着</div>
+          <div style="font-size:16px;margin-top:2px">${s.cartQty} 件</div>
+        </div>
+      </div>
+      <div class="section-title"><h3 style="font-size:14px">订单历史</h3><span class="small muted">最近 ${d.orders.length} 笔</span></div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>订单号</th><th>状态</th><th>金额</th><th>下单时间</th></tr></thead>
+          <tbody>${orderRows}</tbody>
+        </table>
+      </div>
+      <div class="field" style="margin-top:16px">
+        <label class="field__label">重置该顾客的登录密码（至少 6 位）</label>
+        <input class="input" id="cust-newpw" type="text" placeholder="填一个新密码，留空则不改" autocomplete="off">
+      </div>
+    `, `
+      <button class="btn" data-close>关闭</button>
+      <button class="btn btn--primary" id="cust-reset-pw">重置密码</button>
+    `);
+
+    $('#cust-reset-pw').addEventListener('click', async () => {
+      const pw = ($('#cust-newpw').value || '').trim();
+      if (pw.length < 6) return toast('新密码至少 6 位', true);
+      if (!window.confirm('重置后该顾客会被强制下线，需用新密码重新登录。继续？')) return;
+      const btn = $('#cust-reset-pw');
+      btn.disabled = true;
+      try {
+        const r = await api('/api/admin/customers/' + id + '/password', {
+          method: 'POST',
+          body: { password: pw }
+        });
+        $('#cust-newpw').value = '';
+        toast(r.sessionsRevoked ? `密码已重置，已踢下 ${r.sessionsRevoked} 个会话` : '密码已重置');
+      } catch (ex) {
+        toast(ex.message, true);
+      } finally {
+        btn.disabled = false;
       }
     });
   }

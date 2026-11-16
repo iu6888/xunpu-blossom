@@ -589,25 +589,46 @@ module.exports = function register(router) {
     const db = getDb();
     const { page, limit, offset } = pagination(ctx);
     const q = (ctx.query.get('q') || '').trim();
+    const status = ctx.query.get('status') || '';
+    const sort = ctx.query.get('sort') || 'newest';
 
     const where = [];
     const params = [];
     if (q) {
-      where.push('(phone LIKE ? OR nickname LIKE ? OR email LIKE ?)');
+      where.push('(c.phone LIKE ? OR c.nickname LIKE ? OR c.email LIKE ?)');
       params.push(`%${q}%`, `%${q}%`, `%${q}%`);
+    }
+    if (status === 'active' || status === 'disabled') {
+      where.push('c.status = ?');
+      params.push(status);
     }
     const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-    const total = db.get(`SELECT COUNT(*) AS n FROM customers ${clause}`, ...params).n;
+    const CUSTOMER_SORTS = {
+      newest: 'c.id DESC',
+      spent: 'spent DESC, c.id DESC',
+      orders: 'orders_count DESC, c.id DESC',
+      login: 'c.last_login_at IS NULL, c.last_login_at DESC, c.id DESC'
+    };
+    const orderBy = CUSTOMER_SORTS[sort] || CUSTOMER_SORTS.newest;
+
+    const total = db.get(`SELECT COUNT(*) AS n FROM customers c ${clause}`, ...params).n;
     const rows = db.all(
       `SELECT c.*,
               (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS orders_count,
               (SELECT COALESCE(SUM(o.total), 0) FROM orders o
                 WHERE o.customer_id = c.id AND o.status <> 'cancelled') AS spent
-         FROM customers c ${clause} ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+         FROM customers c ${clause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
       ...params,
       limit,
       offset
+    );
+
+    const overall = db.get(
+      `SELECT COUNT(*) AS total,
+              COALESCE(SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END), 0) AS active,
+              COALESCE(SUM(CASE WHEN status = 'disabled' THEN 1 ELSE 0 END), 0) AS disabled
+         FROM customers`
     );
 
     return {
@@ -627,8 +648,123 @@ module.exports = function register(router) {
       total,
       page,
       limit,
-      pages: Math.max(1, Math.ceil(total / limit))
+      pages: Math.max(1, Math.ceil(total / limit)),
+      stats: { total: overall.total, active: overall.active, disabled: overall.disabled }
     };
+  });
+
+  /* 导出顾客清单（放 :id 之前，否则会被 :id 路由吃掉） */
+  router.get('/api/admin/customers.csv', async (ctx) => {
+    requireAdmin(ctx);
+    const db = getDb();
+    const rows = db.all(
+      `SELECT c.*,
+              (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS orders_count,
+              (SELECT COALESCE(SUM(o.total), 0) FROM orders o
+                WHERE o.customer_id = c.id AND o.status <> 'cancelled') AS spent
+         FROM customers c ORDER BY c.id DESC`
+    );
+    const data = rows.map((r) => [
+      r.id,
+      r.phone,
+      r.nickname,
+      r.email || '',
+      r.status === 'active' ? '正常' : '已停用',
+      String(r.orders_count),
+      (r.spent / 100).toFixed(2),
+      r.created_at ? String(r.created_at).slice(0, 10) : '',
+      r.last_login_at ? String(r.last_login_at).slice(0, 10) : ''
+    ]);
+    const csv = toCsv(
+      ['ID', '手机号', '昵称', '邮箱', '状态', '订单数', '累计消费', '注册日期', '最近登录'],
+      data
+    );
+    send(ctx.res, 200, {
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Length': String(Buffer.byteLength(csv)),
+      'Content-Disposition': `attachment; filename="xunpu-customers-${dayKey(new Date(), config.timezone)}.csv"`,
+      'Cache-Control': 'no-store'
+    }, csv);
+    return undefined;
+  });
+
+  /* 顾客详情：基本信息 + 消费汇总 + 订单历史 */
+  router.get('/api/admin/customers/:id', async (ctx) => {
+    requireAdmin(ctx);
+    const db = getDb();
+    const id = Number(ctx.params.id);
+    const c = db.get('SELECT * FROM customers WHERE id = ?', id);
+    if (!c) throw notFound('顾客不存在');
+
+    const agg = db.get(
+      `SELECT COUNT(*) AS n,
+              COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END), 0) AS spent,
+              MIN(created_at) AS first_at,
+              MAX(created_at) AS last_at
+         FROM orders WHERE customer_id = ?`,
+      id
+    );
+    const orderRows = db.all(
+      `SELECT id, order_no, status, total, created_at, customer_name, phone, city, address
+         FROM orders WHERE customer_id = ? ORDER BY id DESC LIMIT 50`,
+      id
+    );
+    const cart = db.get(
+      `SELECT COALESCE(SUM(ci.qty), 0) AS n
+         FROM cart_items ci JOIN carts ct ON ct.id = ci.cart_id
+        WHERE ct.customer_id = ?`,
+      id
+    );
+
+    return {
+      customer: {
+        id: c.id,
+        phone: c.phone,
+        nickname: c.nickname,
+        email: c.email || '',
+        status: c.status,
+        createdAt: c.created_at,
+        lastLoginAt: c.last_login_at
+      },
+      summary: {
+        orders: agg.n,
+        spent: toYuan(agg.spent),
+        spentText: money(agg.spent),
+        avgText: agg.n ? money(Math.round(agg.spent / agg.n)) : money(0),
+        firstOrderAt: agg.first_at,
+        lastOrderAt: agg.last_at,
+        cartQty: cart.n
+      },
+      orders: orderRows.map((o) => ({
+        id: o.id,
+        orderNo: o.order_no,
+        status: o.status,
+        statusText: ORDER_STATUS[o.status] || o.status,
+        totalText: money(o.total),
+        createdAt: o.created_at,
+        receiver: o.customer_name,
+        phone: o.phone,
+        address: [o.city, o.address].filter(Boolean).join(' ')
+      }))
+    };
+  });
+
+  /* 重置顾客密码：置新密码并踢掉该顾客所有会话 */
+  router.post('/api/admin/customers/:id/password', async (ctx) => {
+    requireAdmin(ctx);
+    const db = getDb();
+    const row = db.get('SELECT * FROM customers WHERE id = ?', Number(ctx.params.id));
+    if (!row) throw notFound('顾客不存在');
+
+    const next = v.str(ctx.body?.password, '新密码', { min: 6, max: 100 });
+    db.run(
+      'UPDATE customers SET password_hash = ?, updated_at = ? WHERE id = ?',
+      hashPassword(next),
+      new Date().toISOString(),
+      row.id
+    );
+    const killed = db.run('DELETE FROM customer_sessions WHERE customer_id = ?', row.id).changes;
+    return { id: row.id, updated: true, sessionsRevoked: killed };
   });
 
   router.patch('/api/admin/customers/:id', async (ctx) => {
