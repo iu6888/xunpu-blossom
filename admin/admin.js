@@ -941,7 +941,10 @@
         <td class="small muted">${esc(c.email || '—')}</td>
         <td class="num">${c.orders}</td>
         <td class="num">${c.spentText}</td>
-        <td class="small muted nowrap">${c.lastLoginAt ? timeText(c.lastLoginAt) : '—'}</td>
+        <td class="small muted nowrap">
+          <div>${c.lastLoginAt ? timeText(c.lastLoginAt) : '—'}</div>
+          ${c.lastIp ? `<div style="font-size:11px;opacity:.7">${esc(c.lastIp)}</div>` : ''}
+        </td>
         <td>
           <span class="tag ${c.status === 'active' ? 'tag--confirmed' : 'tag--spam'}">
             ${c.status === 'active' ? '正常' : '已停用'}
@@ -1049,7 +1052,22 @@
     });
   }
 
-  /* 顾客详情：基本资料 + 消费汇总 + 订单历史 + 重置密码 */
+  /* 把长篇 User-Agent 压成一眼能看懂的几个字 */
+  function shortUA(ua) {
+    const s = String(ua || '');
+    if (!s) return '—';
+    if (/MicroMessenger/i.test(s)) return '微信';
+    if (/iPhone|iPad|iPod/i.test(s)) return 'iOS';
+    if (/Android/i.test(s)) return 'Android';
+    if (/Edg\//i.test(s)) return 'Edge';
+    if (/Chrome\//i.test(s)) return 'Chrome';
+    if (/Safari\//i.test(s)) return 'Safari';
+    if (/Firefox\//i.test(s)) return 'Firefox';
+    if (/curl|wget|python|bot|spider|scan/i.test(s)) return '脚本';
+    return s.slice(0, 18);
+  }
+
+  /* 顾客详情：基本资料 + 消费汇总 + 订单历史 + 登录记录 + 重置密码 */
   async function openCustomer(id) {
     let d;
     try {
@@ -1071,6 +1089,16 @@
         </tr>`).join('')
       : '<tr><td colspan="4" class="tbl__empty">该顾客还没有下单</td></tr>';
 
+    const loginRows = d.logins && d.logins.length
+      ? d.logins.map((l) => `
+        <tr>
+          <td class="small nowrap">${DAY(l.createdAt)}</td>
+          <td class="small">${esc(l.ip || '—')}</td>
+          <td class="small">${l.ok ? '<span class="tag tag--confirmed">成功</span>' : '<span class="tag tag--spam">失败</span>'}</td>
+          <td class="small muted" title="${esc(l.userAgent)}">${esc(shortUA(l.userAgent))}</td>
+        </tr>`).join('')
+      : '<tr><td colspan="4" class="tbl__empty">还没有登录记录</td></tr>';
+
     openModal('顾客详情', `
       <div class="kv" style="grid-template-columns:78px 1fr">
         <dt>昵称</dt><dd>${esc(c.nickname || '—')}</dd>
@@ -1078,7 +1106,10 @@
         <dt>邮箱</dt><dd>${esc(c.email || '—')}</dd>
         <dt>状态</dt><dd>${c.status === 'active' ? '正常' : '已停用'}</dd>
         <dt>注册</dt><dd>${DAY(c.createdAt)}</dd>
-        <dt>登录</dt><dd>${c.lastLoginAt ? DAY(c.lastLoginAt) : '从未登录'}</dd>
+        <dt>最近登录</dt><dd>
+          ${c.lastLoginAt ? DAY(c.lastLoginAt) : '从未登录'}
+          ${s.lastIp ? `<span class="small muted"> · IP ${esc(s.lastIp)}</span>` : ''}
+        </dd>
       </div>
       <div class="row-2" style="margin:16px 0 10px">
         <div class="card" style="padding:12px 14px">
@@ -1105,6 +1136,16 @@
         <table class="tbl">
           <thead><tr><th>订单号</th><th>状态</th><th>金额</th><th>下单时间</th></tr></thead>
           <tbody>${orderRows}</tbody>
+        </table>
+      </div>
+      <div class="section-title" style="margin-top:18px">
+        <h3 style="font-size:14px">登录记录</h3>
+        <span class="small muted">最近 ${(d.logins || []).length} 条</span>
+      </div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead><tr><th>时间</th><th>IP</th><th>结果</th><th>设备</th></tr></thead>
+          <tbody>${loginRows}</tbody>
         </table>
       </div>
       <div class="field" style="margin-top:16px">

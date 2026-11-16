@@ -103,7 +103,7 @@ module.exports = function register(router) {
 
     let result;
     try {
-      result = ca.register({ phone, password, nickname: name, email }, ctx.ip);
+      result = ca.register({ phone, password, nickname: name, email }, ctx.ip, ctx.headers['user-agent']);
     } catch (err) {
       if (err && err.status === 409) recordFail(ctx.ip);
       throw err;
@@ -134,7 +134,7 @@ module.exports = function register(router) {
     const phone = v.phone(body.phone, '手机号');
     const password = v.str(body.password, '密码', { max: 64 });
 
-    const result = ca.login(phone, password, ctx.ip);
+    const result = ca.login(phone, password, ctx.ip, ctx.headers['user-agent']);
     if (!result) {
       recordFail(ctx.ip);
       throw unauthorized('手机号或密码不正确');

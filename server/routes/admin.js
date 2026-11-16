@@ -671,7 +671,10 @@ module.exports = function register(router) {
       `SELECT c.*,
               (SELECT COUNT(*) FROM orders o WHERE o.customer_id = c.id) AS orders_count,
               (SELECT COALESCE(SUM(o.total), 0) FROM orders o
-                WHERE o.customer_id = c.id AND o.status <> 'cancelled') AS spent
+                WHERE o.customer_id = c.id AND o.status <> 'cancelled') AS spent,
+              (SELECT cl.ip FROM customer_login_logs cl
+                WHERE cl.customer_id = c.id AND cl.ok = 1
+                ORDER BY cl.id DESC LIMIT 1) AS last_ip
          FROM customers c ${clause} ORDER BY ${orderBy} LIMIT ? OFFSET ?`,
       ...params,
       limit,
@@ -697,6 +700,7 @@ module.exports = function register(router) {
         spent: toYuan(r.spent),
         spentText: money(r.spent),
         lastLoginAt: r.last_login_at,
+        lastIp: r.last_ip || '',
         createdAt: r.created_at
       })),
       total,
@@ -769,6 +773,14 @@ module.exports = function register(router) {
         WHERE ct.customer_id = ?`,
       id
     );
+    const logins = db.all(
+      `SELECT ip, user_agent, ok, created_at
+         FROM customer_login_logs
+        WHERE customer_id = ?
+        ORDER BY id DESC LIMIT 30`,
+      id
+    );
+    const lastOk = logins.find((l) => l.ok === 1);
 
     return {
       customer: {
@@ -787,8 +799,16 @@ module.exports = function register(router) {
         avgText: agg.n ? money(Math.round(agg.spent / agg.n)) : money(0),
         firstOrderAt: agg.first_at,
         lastOrderAt: agg.last_at,
-        cartQty: cart.n
+        cartQty: cart.n,
+        lastIp: lastOk ? lastOk.ip || '' : '',
+        lastOkAt: lastOk ? lastOk.created_at : null
       },
+      logins: logins.map((l) => ({
+        ip: l.ip || '',
+        ok: l.ok === 1,
+        userAgent: l.user_agent || '',
+        createdAt: l.created_at
+      })),
       orders: orderRows.map((o) => ({
         id: o.id,
         orderNo: o.order_no,

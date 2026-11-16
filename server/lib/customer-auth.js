@@ -77,7 +77,28 @@ function maskPhone(phone) {
   return String(phone).replace(/^(\d{3})\d{4}(\d{4})$/, '$1****$2');
 }
 
-function register({ phone, password, nickname, email }, ip) {
+/**
+ * 记一次登录尝试。成功与失败都落表，便于后台查看「谁在什么时候从哪个 IP 登录过」。
+ * user_agent 只截前 200 字符，判断设备类型够用。
+ */
+function recordLogin({ customerId, phone, ip, userAgent, ok }) {
+  try {
+    getDb().run(
+      `INSERT INTO customer_login_logs (customer_id, phone, ip, user_agent, ok, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      customerId || null,
+      String(phone || '').slice(0, 20),
+      ip || null,
+      String(userAgent || '').slice(0, 200),
+      ok ? 1 : 0,
+      new Date().toISOString()
+    );
+  } catch {
+    /* 写日志失败不能连累登录本身 */
+  }
+}
+
+function register({ phone, password, nickname, email }, ip, userAgent) {
   const db = getDb();
   assertPassword(password);
 
@@ -100,16 +121,25 @@ function register({ phone, password, nickname, email }, ip) {
 
   const customer = db.get('SELECT * FROM customers WHERE id = ?', res.lastInsertRowid);
   const session = openSession(customer, ip);
+  recordLogin({ customerId: customer.id, phone, ip, userAgent, ok: true });
   return { ...session, customer: publicCustomer(customer), isNew: true };
 }
 
-function login(phone, password, ip) {
+function login(phone, password, ip, userAgent) {
   const db = getDb();
   const row = db.get('SELECT * FROM customers WHERE phone = ?', String(phone).trim());
-  if (!row || !verifyPassword(password, row.password_hash)) return null;
-  if (row.status !== 'active') throw forbidden('账号已被停用，请联系客服');
+
+  if (!row || !verifyPassword(password, row.password_hash)) {
+    recordLogin({ customerId: row ? row.id : null, phone, ip, userAgent, ok: false });
+    return null;
+  }
+  if (row.status !== 'active') {
+    recordLogin({ customerId: row.id, phone, ip, userAgent, ok: false });
+    throw forbidden('账号已被停用，请联系客服');
+  }
 
   const session = openSession(row, ip);
+  recordLogin({ customerId: row.id, phone, ip, userAgent, ok: true });
   return { ...session, customer: publicCustomer(row), isNew: false };
 }
 

@@ -56,6 +56,20 @@ CREATE TABLE IF NOT EXISTS customer_sessions (
 );
 CREATE INDEX IF NOT EXISTS idx_customer_sessions ON customer_sessions(customer_id);
 
+-- 顾客登录记录：成功与失败都留痕，供后台排查异常登录
+-- 故意不加外键级联，顾客被删后记录仍然保留
+CREATE TABLE IF NOT EXISTS customer_login_logs (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  customer_id INTEGER,
+  phone       TEXT    NOT NULL,
+  ip          TEXT,
+  user_agent  TEXT,
+  ok          INTEGER NOT NULL DEFAULT 1,
+  created_at  TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_customer_login_logs ON customer_login_logs(customer_id, id);
+CREATE INDEX IF NOT EXISTS idx_customer_login_logs_ip ON customer_login_logs(ip, id);
+
 CREATE TABLE IF NOT EXISTS products (
   id          INTEGER PRIMARY KEY AUTOINCREMENT,
   slug        TEXT    NOT NULL UNIQUE,
