@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
+const crypto = require('node:crypto');
 const { getDb } = require('../db');
 const config = require('../config');
 const repo = require('../repo');
@@ -328,6 +331,57 @@ module.exports = function register(router) {
     }, csv);
     return undefined;
   });
+
+  /* ---------- 图片上传 ----------
+     零依赖方案：前端先用 canvas 把图压到合适尺寸，再以 data URL POST 过来，
+     服务端只做类型白名单 + 体积校验 + 落盘。
+     存放路径在 data/uploads 下，部署时 rsync 会跳过 data/，不会被覆盖。 */
+
+  const UPLOAD_TYPES = {
+    'image/jpeg': 'jpg',
+    'image/png': 'png',
+    'image/webp': 'webp',
+    'image/gif': 'gif'
+  };
+  const UPLOAD_MAX_BYTES = 3 * 1024 * 1024;
+
+  router.post('/api/admin/uploads', async (ctx) => {
+    requireAdmin(ctx);
+    const body = ctx.body || {};
+    const raw = String(body.data || '');
+    const m = raw.match(/^data:(image\/[a-z+.-]+);base64,([A-Za-z0-9+/=]+)$/i);
+    if (!m) throw badRequest('请提交 base64 编码的图片（JPG / PNG / WebP / GIF）');
+
+    const mime = m[1].toLowerCase();
+    const ext = UPLOAD_TYPES[mime];
+    if (!ext) throw badRequest('只支持 JPG / PNG / WebP / GIF');
+
+    let buf;
+    try {
+      buf = Buffer.from(m[2], 'base64');
+    } catch {
+      throw badRequest('图片数据损坏，请重新选择');
+    }
+    if (!buf.length) throw badRequest('图片内容为空');
+    if (buf.length > UPLOAD_MAX_BYTES) {
+      throw badRequest(`图片不能超过 ${Math.round(UPLOAD_MAX_BYTES / 1024 / 1024)}MB，请压缩后再试`);
+    }
+
+    const now = new Date();
+    const ym = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}`;
+    const dir = path.join(config.uploadDir, ym);
+    fs.mkdirSync(dir, { recursive: true });
+
+    const name = `${crypto.randomBytes(8).toString('hex')}.${ext}`;
+    fs.writeFileSync(path.join(dir, name), buf);
+
+    return {
+      url: `/uploads/${ym}/${name}`,
+      bytes: buf.length,
+      width: Number(body.width) || null,
+      height: Number(body.height) || null
+    };
+  }, { status: 201 });
 
   /* ---------- 商品 ---------- */
   router.get('/api/admin/products', async (ctx) => {

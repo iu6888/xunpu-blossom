@@ -67,6 +67,10 @@ const config = {
 
   /** 上传/请求体上限 256KB */
   maxBodyBytes: int(process.env.MAX_BODY_KB, 256) * 1024,
+  /** 图片上传单独放宽：base64 会膨胀约 1/3，6MB 约合 4.5MB 原图 */
+  maxUploadBytes: int(process.env.MAX_UPLOAD_KB, 6144) * 1024,
+  /** 后台上传的图片存放目录（在 data 下，部署时不会被覆盖） */
+  uploadDir: process.env.UPLOAD_DIR || path.join(ROOT, 'data', 'uploads'),
 
   brand: {
     name: '蟳埔花事',

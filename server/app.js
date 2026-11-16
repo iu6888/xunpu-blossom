@@ -8,7 +8,7 @@ const {
 const { RateLimiter } = require('./lib/security');
 const { currentUser } = require('./lib/auth');
 const { currentCustomer } = require('./lib/customer-auth');
-const { serveSite, serveAdmin } = require('./static');
+const { serveSite, serveAdmin, serveUploads } = require('./static');
 
 /* ------------------------------------------------------------------ */
 /* 路由表                                                              */
@@ -126,6 +126,10 @@ async function handle(req, res) {
       if (serveAdmin(req, res, pathname, config.adminDir)) return;
       throw notFound('页面不存在');
     }
+    if (pathname.startsWith('/uploads/')) {
+      if (serveUploads(req, res, pathname, config.uploadDir)) return;
+      throw notFound('图片不存在');
+    }
     if (serveSite(req, res, pathname, config.siteDir, { notFoundPage: '/404.html' })) return;
     throw notFound('页面不存在');
   }
@@ -176,11 +180,14 @@ async function handle(req, res) {
     customer
   };
 
+  // 图片上传走单独的体积上限，其余接口维持 256KB
+  const bodyLimit = pathname === '/api/admin/uploads' ? config.maxUploadBytes : config.maxBodyBytes;
+
   if (isWrite && /application\/(json|x-www-form-urlencoded)/i.test(req.headers['content-type'] || '')) {
-    ctx.body = await readBody(req, config.maxBodyBytes);
+    ctx.body = await readBody(req, bodyLimit);
   } else if (isWrite && req.headers['content-length'] && Number(req.headers['content-length']) > 0) {
     // 没有声明 content-type 但有内容，按 JSON 尝试
-    ctx.body = await readBody(req, config.maxBodyBytes);
+    ctx.body = await readBody(req, bodyLimit);
   }
 
   const data = await route.handler(ctx);

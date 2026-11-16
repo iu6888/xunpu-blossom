@@ -155,4 +155,23 @@ function serveAdmin(req, res, pathname, adminDir) {
   return sendFile(req, res, index, 'index.html', { cacheSeconds: 0 });
 }
 
-module.exports = { serveSite, serveAdmin, sendFile, safeJoin };
+/**
+ * 后台上传的商品图（挂在 /uploads 下，实际存在 data/uploads）。
+ * 只放行图片扩展名，避免上传目录里混进可执行内容被当页面渲染。
+ */
+function serveUploads(req, res, pathname, uploadDir) {
+  if (req.method !== 'GET' && req.method !== 'HEAD') return false;
+
+  const sub = pathname.replace(/^\/uploads\/?/, '');
+  if (!sub) return false;
+
+  const target = safeJoin(uploadDir, `/${sub}`);
+  if (!target) return false;
+  if (!/\.(jpe?g|png|webp|avif|gif)$/i.test(target.rel)) return false;
+
+  const stat = statSafe(target.abs);
+  if (stat && stat.isFile()) return sendFile(req, res, target.abs, target.rel);
+  return false;
+}
+
+module.exports = { serveSite, serveAdmin, serveUploads, sendFile, safeJoin };

@@ -537,6 +537,120 @@
      商品
      ================================================================ */
 
+  /* ---------- 图片：压缩 → 上传 → 回填 ---------- */
+
+  /** 用 canvas 把图压到长边 maxEdge、JPEG 指定质量；GIF 原样上传以保动图 */
+  function compressImage(file, maxEdge, quality) {
+    return new Promise((resolve, reject) => {
+      if (file.type === 'image/gif') {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ data: reader.result, width: 0, height: 0 });
+        reader.onerror = () => reject(new Error('图片读取失败'));
+        reader.readAsDataURL(file);
+        return;
+      }
+      const url = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+        const w = Math.max(1, Math.round(img.width * scale));
+        const h = Math.max(1, Math.round(img.height * scale));
+        const cv = document.createElement('canvas');
+        cv.width = w;
+        cv.height = h;
+        const g = cv.getContext('2d');
+        // 透明 PNG 转 JPEG 会变黑，先铺一层白
+        g.fillStyle = '#ffffff';
+        g.fillRect(0, 0, w, h);
+        g.drawImage(img, 0, 0, w, h);
+        resolve({ data: cv.toDataURL('image/jpeg', quality), width: w, height: h });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error('这不是一张能识别的图片'));
+      };
+      img.src = url;
+    });
+  }
+
+  async function uploadImageFile(file) {
+    if (file.size > 20 * 1024 * 1024) throw new Error('原图不要超过 20MB');
+    const { data, width, height } = await compressImage(file, 1600, 0.86);
+    const res = await api('/api/admin/uploads', { method: 'POST', body: { data, width, height } });
+    return res.url;
+  }
+
+  /** 把域名/相对路径统一成可直接放进 img src 的形式 */
+  function imageSrcOf(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return 'assets/img/logo.svg';
+    if (/^(https?:)?\/\//i.test(s) || s.indexOf('data:') === 0) return s;
+    return '/' + s.replace(/^\/+/, '');
+  }
+
+  /** 给「方块预览 + 地址输入」这一组控件绑上点击选图 */
+  function bindImagePicker(pickerId, inputId, previewId) {
+    const box = $('#' + pickerId);
+    const input = $('#' + inputId);
+    const preview = $('#' + previewId);
+    if (!box || !input) return;
+
+    const sync = () => { if (preview) preview.src = imageSrcOf(input.value); };
+    sync();
+    input.addEventListener('input', sync);
+
+    const maskLabel = box.querySelector('.picker__mask span');
+
+    box.addEventListener('click', () => {
+      if (box.classList.contains('is-busy')) return;
+      const chooser = document.createElement('input');
+      chooser.type = 'file';
+      chooser.accept = 'image/*';
+      chooser.onchange = async () => {
+        const f = chooser.files && chooser.files[0];
+        if (!f) return;
+        box.classList.add('is-busy');
+        if (maskLabel) maskLabel.textContent = '上传中…';
+        try {
+          const url = await uploadImageFile(f);
+          input.value = url;
+          sync();
+          toast('图片已上传');
+        } catch (ex) {
+          toast(ex.message, true);
+        } finally {
+          box.classList.remove('is-busy');
+          if (maskLabel) maskLabel.textContent = '点击更换';
+        }
+      };
+      chooser.click();
+    });
+  }
+
+  /** 列表里点缩略图直接换主图 */
+  async function replaceProductImage(id, imgEl) {
+    const chooser = document.createElement('input');
+    chooser.type = 'file';
+    chooser.accept = 'image/*';
+    chooser.onchange = async () => {
+      const f = chooser.files && chooser.files[0];
+      if (!f) return;
+      imgEl.style.opacity = '.45';
+      try {
+        const url = await uploadImageFile(f);
+        await api('/api/admin/products/' + id, { method: 'PATCH', body: { image: url } });
+        imgEl.src = imageSrcOf(url);
+        toast('主图已更换');
+      } catch (ex) {
+        toast(ex.message, true);
+      } finally {
+        imgEl.style.opacity = '1';
+      }
+    };
+    chooser.click();
+  }
+
   async function renderProducts() {
     const data = await api('/api/admin/products');
     const view$ = $('#view');
@@ -547,9 +661,9 @@
 
     const list = data.items.map((p) => `
       <div class="prod" data-product="${p.id}">
-        <img class="prod__img" src="/${esc(p.image || 'assets/img/logo.svg')}" alt="">
+        <img class="prod__img" src="${esc(imageSrcOf(p.image))}" alt="" data-img="${p.id}" title="点击更换主图" onerror="this.onerror=null;this.src='assets/img/logo.svg'">
         <div>
-          <div class="prod__name">${esc(p.name)} ${p.status === 'archived' ? '<span class="tag tag--spam">已下架</span>' : ''} ${p.featured ? '<span class="tag tag--pending">主推</span>' : ''}</div>
+          <div class="prod__name">${esc(p.name)} ${p.status === 'archived' ? '<span class="tag tag--spam">已下架</span>' : ''} ${p.featured ? '<span class="tag tag--pending">主推</span>' : ''} ${p.stock === 0 ? '<span class="tag tag--spam">缺货</span>' : ''}</div>
           <div class="prod__meta">${esc(p.nameEn)} · ${esc(p.slug)} · 共 ${p.variants.length} 个规格 · 合计库存 ${p.stock}</div>
           <div class="prod__tagline">${esc(p.tagline)}</div>
           <div class="prod__vars">
@@ -560,7 +674,7 @@
                   <div class="var-row__sku">${esc(v.sku)}</div>
                 </div>
                 <input class="input input--sm var-price" type="number" min="0" step="0.01" value="${v.price}" data-variant="${v.id}" data-field="price" title="价格（元）">
-                <input class="input input--sm var-stock" type="number" min="0" step="1" value="${v.stock}" data-variant="${v.id}" data-field="stock" title="库存">
+                <input class="input input--sm var-stock ${v.stock === 0 ? 'is-out' : v.stock <= 5 ? 'is-low' : ''}" type="number" min="0" step="1" value="${v.stock}" data-variant="${v.id}" data-field="stock" title="库存${v.stock === 0 ? '（已缺货）' : v.stock <= 5 ? '（库存偏少）' : ''}">
                 <button class="btn btn--sm var-status" data-toggle="${v.id}" data-current="${v.status}">${v.status === 'active' ? '在售' : '停售'}</button>
               </div>`).join('')}
           </div>
@@ -595,6 +709,13 @@
   }
 
   async function onProductClick(e) {
+    // 点缩略图 = 直接换主图
+    const thumb = e.target.closest('[data-img]');
+    if (thumb) {
+      replaceProductImage(Number(thumb.dataset.img), thumb);
+      return;
+    }
+
     const toggle = e.target.closest('[data-toggle]');
     if (toggle) {
       const next = toggle.dataset.current === 'active' ? 'archived' : 'active';
@@ -676,14 +797,21 @@
           <input class="input" id="np-price" type="number" min="0" step="0.01" placeholder="398">
         </div>
       </div>
-      <div class="row-2">
-        <div class="field">
-          <label class="field__label">初始库存</label>
-          <input class="input" id="np-stock" type="number" min="0" step="1" value="0">
-        </div>
-        <div class="field">
-          <label class="field__label">主图路径</label>
-          <input class="input" id="np-image" placeholder="assets/img/p-garland.svg">
+      <div class="field">
+        <label class="field__label">商品主图</label>
+        <div class="picker-row">
+          <div class="picker" id="np-picker">
+            <img class="picker__img" id="np-preview" src="assets/img/logo.svg" alt="">
+            <div class="picker__mask"><span>点击更换</span></div>
+          </div>
+          <div class="picker-row__side">
+            <div class="field" style="margin-bottom:8px">
+              <label class="field__label">初始库存</label>
+              <input class="input" id="np-stock" type="number" min="0" step="1" value="0">
+            </div>
+            <input class="input input--sm" id="np-image" placeholder="图片地址，或点左边方块上传">
+            <div class="picker-row__hint">支持 JPG / PNG / WebP，自动压到 1600px 以内再上传</div>
+          </div>
         </div>
       </div>
       <label class="small muted" style="display:flex;gap:6px;align-items:center">
@@ -691,6 +819,8 @@
       </label>`, `
       <button class="btn" data-close>取消</button>
       <button class="btn btn--primary" id="np-save">创建</button>`);
+
+    bindImagePicker('np-picker', 'np-image', 'np-preview');
 
     $('#np-save').addEventListener('click', async () => {
       const body = {
@@ -740,14 +870,21 @@
         <label class="field__label">描述</label>
         <textarea class="input" id="ep-desc" rows="4">${esc(p.description)}</textarea>
       </div>
-      <div class="row-2">
-        <div class="field">
-          <label class="field__label">单位</label>
-          <input class="input" id="ep-unit" value="${esc(p.unit)}">
-        </div>
-        <div class="field">
-          <label class="field__label">主图路径</label>
-          <input class="input" id="ep-image" value="${esc(p.image)}">
+      <div class="field">
+        <label class="field__label">商品主图</label>
+        <div class="picker-row">
+          <div class="picker" id="ep-picker">
+            <img class="picker__img" id="ep-preview" src="${esc(imageSrcOf(p.image))}" alt="">
+            <div class="picker__mask"><span>点击更换</span></div>
+          </div>
+          <div class="picker-row__side">
+            <div class="field" style="margin-bottom:8px">
+              <label class="field__label">单位</label>
+              <input class="input" id="ep-unit" value="${esc(p.unit)}">
+            </div>
+            <input class="input input--sm" id="ep-image" value="${esc(p.image)}" placeholder="图片地址，或点左边方块上传">
+            <div class="picker-row__hint">换图后记得点下面的「保存」</div>
+          </div>
         </div>
       </div>
       <label class="small muted" style="display:flex;gap:6px;align-items:center">
@@ -755,6 +892,8 @@
       </label>`, `
       <button class="btn" data-close>取消</button>
       <button class="btn btn--primary" id="ep-save">保存</button>`);
+
+    bindImagePicker('ep-picker', 'ep-image', 'ep-preview');
 
     $('#ep-save').addEventListener('click', async () => {
       try {
