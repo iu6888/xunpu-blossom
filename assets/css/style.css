@@ -3069,3 +3069,82 @@ a,
   -o-user-drag: none;
   user-drag: none;
 }
+
+/* ---------- 背景音乐开关 ---------- */
+.bgm-toggle {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 95;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 162, 74, .42);
+  background: rgba(251, 248, 241, .9);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  color: var(--red);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 6px 24px rgba(36, 31, 26, .13);
+  transition: transform .32s cubic-bezier(.22, .61, .36, 1), box-shadow .32s, opacity .32s;
+  opacity: .82;
+}
+
+.bgm-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 28px rgba(36, 31, 26, .18);
+  opacity: 1;
+}
+
+.bgm-toggle:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+}
+
+/* 默认（没播）显示带斜线的音符，播放中显示干净音符 */
+.bgm-toggle__on { display: none; }
+.bgm-toggle__off { display: block; }
+.bgm-toggle.is-on .bgm-toggle__on { display: block; }
+.bgm-toggle.is-on .bgm-toggle__off { display: none; }
+
+.bgm-toggle.is-on {
+  opacity: 1;
+  border-color: rgba(168, 52, 43, .45);
+}
+
+/* 播放时的柔和光环 */
+.bgm-toggle.is-on::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 162, 74, .5);
+  animation: bgm-pulse 2.8s ease-out infinite;
+  pointer-events: none;
+}
+
+/* 上次主动关掉的访客，按钮低调一点 */
+.bgm-toggle.is-quiet { opacity: .5; }
+
+@keyframes bgm-pulse {
+  0%   { opacity: .55; transform: scale(.9); }
+  70%  { opacity: 0;   transform: scale(1.2); }
+  100% { opacity: 0;   transform: scale(1.2); }
+}
+
+@media (max-width: 560px) {
+  .bgm-toggle {
+    right: 16px;
+    bottom: 16px;
+    width: 42px;
+    height: 42px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bgm-toggle.is-on::after { animation: none; opacity: 0; }
+  .bgm-toggle:hover { transform: none; }
+}
