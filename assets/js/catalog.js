@@ -117,8 +117,9 @@
     }
   }, true);
 
-  /* 首页取「主推」里最新的三件：新上架并勾选主推的商品能立刻露头 */
-  var primary = isHome ? 'featured=1&limit=3&sort=newest' : 'limit=60&sort=featured';
+  /* 首页取「主推」里排序最靠前的三件 —— 顺序完全由后台的上移/下移决定，
+     不再按上架时间抢位，避免店主编好的次序被新商品顶掉 */
+  var primary = isHome ? 'featured=1&limit=3&sort=featured' : 'limit=60&sort=featured';
 
   fetchProducts(primary)
     .then(function (items) {

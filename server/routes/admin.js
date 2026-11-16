@@ -408,6 +408,30 @@ module.exports = function register(router) {
     };
   });
 
+  /* 调整商品顺序：body.ids 按期望的前后顺序给出全部商品 id。
+     用 10 的步长写入，留出以后插入的余地。 */
+  router.post('/api/admin/products/reorder', async (ctx) => {
+    requireAdmin(ctx);
+    const raw = (ctx.body && ctx.body.ids) || null;
+    if (!Array.isArray(raw) || raw.length === 0) throw badRequest('请提供商品顺序');
+
+    const ids = raw.map((x) => Number(x));
+    if (ids.some((n) => !Number.isInteger(n) || n <= 0)) throw badRequest('商品 id 不合法');
+
+    const db = getDb();
+    const existing = db.all('SELECT id FROM products').map((r) => r.id);
+    const same = ids.length === existing.length && existing.every((id) => ids.includes(id));
+    if (!same) throw conflict('商品列表已经变了，请刷新页面后再调顺序');
+
+    const now = new Date().toISOString();
+    db.tx(() => {
+      ids.forEach((id, i) => {
+        db.run('UPDATE products SET sort_order = ?, updated_at = ? WHERE id = ?', (i + 1) * 10, now, id);
+      });
+    });
+    return { updated: ids.length };
+  });
+
   router.post('/api/admin/products', async (ctx) => {
     requireAdmin(ctx);
     ctx.status = 201;

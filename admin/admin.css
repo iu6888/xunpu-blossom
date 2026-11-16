@@ -996,3 +996,19 @@ a,
 /* 库存为 0 或偏少的规格，输入框描边提示 */
 .var-stock.is-low { border-color: rgba(168, 52, 43, .45); }
 .var-stock.is-out { border-color: var(--red); color: var(--red); }
+
+/* 商品列表里的展示顺序号 */
+.prod__order {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  margin-right: 6px;
+  border-radius: 6px;
+  background: var(--paper-deep);
+  color: var(--ink-mute);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 1px;
+}

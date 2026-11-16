@@ -659,11 +659,14 @@
       '<button class="btn btn--sm btn--primary" id="act-new-product">新增商品</button>';
     $('#act-new-product').addEventListener('click', openNewProduct);
 
-    const list = data.items.map((p) => `
+    const list = data.items.map((p, i) => `
       <div class="prod" data-product="${p.id}">
         <img class="prod__img" src="${esc(imageSrcOf(p.image))}" alt="" data-img="${p.id}" title="点击更换主图" onerror="this.onerror=null;this.src='assets/img/logo.svg'">
         <div>
-          <div class="prod__name">${esc(p.name)} ${p.status === 'archived' ? '<span class="tag tag--spam">已下架</span>' : ''} ${p.featured ? '<span class="tag tag--pending">主推</span>' : ''} ${p.stock === 0 ? '<span class="tag tag--spam">缺货</span>' : ''}</div>
+          <div class="prod__name">
+            <span class="prod__order" title="前台展示顺序">${i + 1}</span>
+            ${esc(p.name)} ${p.status === 'archived' ? '<span class="tag tag--spam">已下架</span>' : ''} ${p.featured ? '<span class="tag tag--pending">主推</span>' : ''} ${p.stock === 0 ? '<span class="tag tag--spam">缺货</span>' : ''}
+          </div>
           <div class="prod__meta">${esc(p.nameEn)} · ${esc(p.slug)} · 共 ${p.variants.length} 个规格 · 合计库存 ${p.stock}</div>
           <div class="prod__tagline">${esc(p.tagline)}</div>
           <div class="prod__vars">
@@ -680,6 +683,10 @@
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+          <div style="display:flex;gap:4px">
+            <button class="btn btn--sm" data-move="${p.id}" data-dir="-1" title="在前台往前排" ${i === 0 ? 'disabled' : ''}>↑</button>
+            <button class="btn btn--sm" data-move="${p.id}" data-dir="1" title="在前台往后排" ${i === data.items.length - 1 ? 'disabled' : ''}>↓</button>
+          </div>
           <button class="btn btn--sm" data-edit="${p.id}">编辑文案</button>
           <button class="btn btn--sm ${p.status === 'active' ? 'btn--danger' : ''}" data-archive="${p.id}" data-current="${p.status}">
             ${p.status === 'active' ? '下架' : '重新上架'}
@@ -708,7 +715,35 @@
     }
   }
 
+  /** 上移 / 下移一位，然后把整个顺序回写给服务端 */
+  async function moveProduct(id, dir) {
+    try {
+      const data = await api('/api/admin/products');
+      const ids = data.items.map((p) => p.id);
+      const from = ids.indexOf(id);
+      const to = from + dir;
+      if (from < 0 || to < 0 || to >= ids.length) return;
+
+      ids[from] = ids[to];
+      ids[to] = id;
+
+      await api('/api/admin/products/reorder', { method: 'POST', body: { ids } });
+      goto('products');
+    } catch (ex) {
+      toast(ex.message, true);
+    }
+  }
+
   async function onProductClick(e) {
+    // 上移 / 下移
+    const move = e.target.closest('[data-move]');
+    if (move) {
+      if (move.disabled) return;
+      move.disabled = true;
+      moveProduct(Number(move.dataset.move), Number(move.dataset.dir));
+      return;
+    }
+
     // 点缩略图 = 直接换主图
     const thumb = e.target.closest('[data-img]');
     if (thumb) {
