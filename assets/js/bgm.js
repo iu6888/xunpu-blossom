@@ -11,7 +11,6 @@
 (function () {
   'use strict';
 
-  var FILE_SRC = 'assets/audio/bgm.mp3';
   var WANTED_KEY = 'xb-bgm-wanted';
 
   /* ---------------- 按钮 ---------------- */
@@ -44,20 +43,38 @@
     mount();
   }
 
-  /* ---------------- 音频文件探测 ---------------- */
+  /* ---------------- 音频文件探测 ----------------
+     依次尝试几种常见格式，第一个能播的就用它。
+     都找不到就退回下面的 Web Audio 合成。 */
 
+  var CANDIDATES = [
+    'assets/audio/bgm.mp3',
+    'assets/audio/bgm.m4a',
+    'assets/audio/bgm.ogg',
+    'assets/audio/bgm.wav'
+  ];
   var audioEl = null;
-  try {
-    var probe = new Audio();
-    probe.preload = 'metadata';
-    probe.loop = true;
-    probe.volume = 0.55;
-    probe.addEventListener('canplaythrough', function () { audioEl = probe; }, { once: true });
-    probe.src = FILE_SRC;
-    probe.load();
-  } catch (e) {
-    audioEl = null;
-  }
+
+  (function probeFile(i) {
+    if (i >= CANDIDATES.length) return;
+    var a;
+    try {
+      a = new Audio();
+    } catch (e) {
+      return;
+    }
+    a.preload = 'metadata';
+    a.loop = true;
+    a.volume = 0.55;
+    a.addEventListener('canplaythrough', function () { audioEl = a; }, { once: true });
+    a.addEventListener('error', function () { probeFile(i + 1); }, { once: true });
+    try {
+      a.src = CANDIDATES[i];
+      a.load();
+    } catch (e) {
+      probeFile(i + 1);
+    }
+  })(0);
 
   /* ---------------- Web Audio 合成 ---------------- */
 
