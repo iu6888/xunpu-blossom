@@ -21,6 +21,7 @@ require('./routes/cart')(router);
 require('./routes/account')(router);
 require('./routes/orders')(router);
 require('./routes/inquiries')(router);
+require('./routes/games')(router);
 require('./routes/auth')(router);
 require('./routes/admin')(router);
 

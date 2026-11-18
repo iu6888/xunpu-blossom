@@ -10,7 +10,7 @@
 <meta name="author" content="蟳埔花事 XUNPU BLOSSOM">
 <meta name="theme-color" content="#F3EEE4">
 <link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/css/style.css?v=20261265b">
+<link rel="stylesheet" href="assets/css/style.css?v=20261118">
 <link rel="stylesheet" href="assets/css/store.css?v=20261257">
 <meta property="og:type" content="website">
 <meta property="og:title" content="蟳埔花事 · 头顶花园｜泉州城市礼物">
@@ -42,6 +42,7 @@
       <a class="nav__link" href="story.html">花事源流</a>
       <a class="nav__link" href="collection.html">城市礼物</a>
       <a class="nav__link" href="design.html">设计说明</a>
+      <a class="nav__link" href="games/index.html">花间游戏</a>
       <a class="nav__link" href="#contact">合作联系</a>
     </nav>
     <button class="nav-toggle" aria-label="展开菜单" aria-controls="nav" aria-expanded="false"><span></span></button>
@@ -124,6 +125,74 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= 花间游戏 ================= -->
+  <section class="games-band" id="games">
+    <div class="wrap">
+      <div class="games-band__head">
+        <div class="reveal">
+          <span class="eyebrow">花间游戏 · 三分钟一回</span>
+          <h2 class="games-title" style="margin-top:14px">花间<span class="stroke">游戏</span></h2>
+          <p class="games-lede">逛累了就歇一会儿。三个小游戏都取自这顶花园：拼花冠、认花签、找花园里的三处不同。不用注册，成绩留在花间榜上。</p>
+        </div>
+        <a class="btn btn--primary reveal" data-delay="1" href="games/index.html">
+          进入游戏大厅
+          <svg class="btn__arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <div class="games-grid">
+        <a class="game-tile reveal" href="games/puzzle.html">
+          <div class="game-tile__top">
+            <span class="game-tile__num">01 / PUZZLE</span>
+            <svg class="game-tile__icon" viewBox="0 0 56 56" aria-hidden="true">
+              <rect x="4" y="4" width="22" height="22" fill="#A8342B"/>
+              <rect x="30" y="4" width="22" height="22" fill="#E3C882"/>
+              <rect x="4" y="30" width="22" height="22" fill="#C9A24A"/>
+              <rect x="30" y="30" width="22" height="22" fill="none" stroke="#A8342B" stroke-width="1.5" stroke-dasharray="4 3"/>
+            </svg>
+          </div>
+          <h3>拼图 · 复原花冠</h3>
+          <p>九宫格被打乱，点两块交换位置。用最少的步数，把花冠拼回原样。</p>
+          <span class="game-tile__best" data-best="puzzle">还没有人上榜，来做第一个</span>
+        </a>
+
+        <a class="game-tile reveal" data-delay="1" href="games/memory.html">
+          <div class="game-tile__top">
+            <span class="game-tile__num">02 / MEMORY</span>
+            <svg class="game-tile__icon" viewBox="0 0 56 56" aria-hidden="true">
+              <rect x="6" y="10" width="20" height="32" rx="2" fill="#4C6157"/>
+              <rect x="30" y="10" width="20" height="32" rx="2" fill="#FBF7EF" stroke="#A8342B" stroke-width="1.5"/>
+              <circle cx="40" cy="26" r="7" fill="#A8342B"/>
+            </svg>
+          </div>
+          <h3>翻卡片 · 花签配对</h3>
+          <p>十六张花签背面朝上，八种花色各两张。记住位置，两两配齐。</p>
+          <span class="game-tile__best" data-best="memory">还没有人上榜，来做第一个</span>
+        </a>
+
+        <a class="game-tile reveal" data-delay="2" href="games/spot.html">
+          <div class="game-tile__top">
+            <span class="game-tile__num">03 / SPOT</span>
+            <svg class="game-tile__icon" viewBox="0 0 56 56" aria-hidden="true">
+              <circle cx="22" cy="24" r="13" fill="none" stroke="#A8342B" stroke-width="2"/>
+              <line x1="32" y1="34" x2="46" y2="48" stroke="#A8342B" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="22" cy="24" r="4" fill="#C9A24A"/>
+            </svg>
+          </div>
+          <h3>找不同 · 两座花园</h3>
+          <p>甲乙两园藏着三处不同：一朵变色、一朵消失、一朵变小。找出全部。</p>
+          <span class="game-tile__best" data-best="spot">还没有人上榜，来做第一个</span>
+        </a>
+      </div>
+
+      <div class="games-rank reveal" id="games-rank" aria-live="polite">
+        <span class="games-rank__label">花间榜</span>
+        <span class="games-rank__list" id="games-rank-list">正在读取…</span>
+        <a class="games-rank__more" href="games/index.html#board">看完整榜单 →</a>
+      </div>
+    </div>
+  </section>
 
   <!-- ================= 01 序 ================= -->
   <section class="section" id="intro">
@@ -520,5 +589,6 @@
 <script src="assets/js/store.js?v=20261115" defer></script>
 <script src="assets/js/catalog.js?v=20261116" defer></script>
 <script src="assets/js/bgm.js?v=20261116" defer></script>
+<script src="assets/js/games-home.js?v=20261118" defer></script>
 </body>
 </html>

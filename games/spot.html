@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>找不同 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="甲乙两座花园藏着三处不同：一朵花变色、一朵花消失、中心花变小。找出全部三处，用时越短排名越高。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261118">
+<style>
+  .spot-stage{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .scene{position:relative;border:1px solid var(--line);cursor:crosshair;background:var(--cream)}
+  .scene svg{display:block;width:100%;height:auto}
+  .scene .tag{
+    position:absolute;top:6px;left:8px;
+    font-size:.7rem;letter-spacing:.2em;color:var(--ink-soft);
+  }
+  .hint-bar{
+    margin-top:14px;font-size:.8rem;color:var(--ink-soft);
+    letter-spacing:.1em;min-height:24px;text-align:center;
+    transition:color .2s;
+  }
+  .hint-bar.warn{color:var(--red)}
+  @media(max-width:480px){
+    .spot-stage{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">03 · 找不同</div>
+    <h1>两座<br><span class="stroke">花园</span></h1>
+    <div class="sub">Spot three differences</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>已找到 <b id="found">0</b> / 3</span>
+      <span>用时 <b id="time">0:00</b></span>
+      <button class="btn ghost" id="restart" style="padding:7px 18px">重开</button>
+    </div>
+    <div class="spot-stage">
+      <div class="scene" id="scene-a"><span class="tag">甲园</span></div>
+      <div class="scene" id="scene-b"><span class="tag">乙园</span></div>
+    </div>
+    <div class="hint-bar" id="hint">点击两图中有差异的位置</div>
+  </div>
+
+  <div class="panel board" data-board="spot" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 找不同<small>Sharpest eyes in the garden</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">蟳埔花事 · 花间游戏</footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">全部找出</div>
+    <h2>明察秋毫</h2>
+    <p id="win-text"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：簪花小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <button class="btn" onclick="restart()">再玩一次</button>
+  </div>
+</div>
+
+<script src="assets/flower.js?v=20261118"></script>
+<script src="assets/leaderboard.js?v=20261118"></script>
+<script>
+(function(){
+  const scenes = [document.getElementById('scene-a'),document.getElementById('scene-b')];
+  const hint = document.getElementById('hint');
+  let found = [], misses = 0, seconds = 0, timer = null, won = false;
+
+  function fmt(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+  function startTimer(){
+    if(timer) return;
+    timer = setInterval(function(){
+      seconds++;
+      document.getElementById('time').textContent = fmt(seconds);
+    },1000);
+  }
+  function stopTimer(){ clearInterval(timer); timer = null; }
+
+  function build(){
+    scenes[0].insertAdjacentHTML('beforeend',gardenSceneSVG(false));
+    scenes[1].insertAdjacentHTML('beforeend',gardenSceneSVG(true));
+    scenes.forEach(function(sc){
+      sc.querySelector('svg').addEventListener('click',function(e){ onTap(e,sc); });
+    });
+  }
+
+  function onTap(e,sc){
+    if(won) return;
+    startTimer();
+    const svg = sc.querySelector('svg');
+    const rect = svg.getBoundingClientRect();
+    const x = (e.clientX-rect.left)/rect.width*300;
+    const y = (e.clientY-rect.top)/rect.height*300;
+
+    for(let i=0;i<SPOT_DIFFS.length;i++){
+      if(found.indexOf(i)!==-1) continue;
+      const d = SPOT_DIFFS[i];
+      const dist = Math.hypot(x-d.x,y-d.y);
+      if(dist <= d.r){
+        found.push(i);
+        markAll(d,found.length);
+        document.getElementById('found').textContent = found.length;
+        say('找到第 '+found.length+' 处！',false);
+        if(found.length === 3){
+          won = true; stopTimer();
+          document.getElementById('win-text').textContent =
+            '用时 '+fmt(seconds)+'，三处不同全部找出'+
+            (misses ? '，误点 '+misses+' 次。' : '，一次没错。');
+          setTimeout(function(){
+            document.getElementById('win').classList.add('show');
+            XBGame.finish({ game:'spot', seconds:seconds, moves:misses });
+          },500);
+        }
+        return;
+      }
+    }
+    misses++;
+    say('这里两座花园是一样的',true);
+  }
+
+  function markAll(d,n){
+    scenes.forEach(function(sc){
+      const svg = sc.querySelector('svg');
+      const ns = 'http://www.w3.org/2000/svg';
+      const c = document.createElementNS(ns,'circle');
+      c.setAttribute('cx',d.x); c.setAttribute('cy',d.y);
+      c.setAttribute('r',d.r*0.85);
+      c.setAttribute('fill','none');
+      c.setAttribute('stroke','#A8342B');
+      c.setAttribute('stroke-width','2.5');
+      svg.appendChild(c);
+      const t = document.createElementNS(ns,'text');
+      t.setAttribute('x',d.x); t.setAttribute('y',d.y-d.r*0.85-6);
+      t.setAttribute('text-anchor','middle');
+      t.setAttribute('fill','#A8342B');
+      t.setAttribute('font-size','14');
+      t.textContent = n;
+      svg.appendChild(t);
+    });
+  }
+
+  let hintTimer = null;
+  function say(text,warn){
+    hint.textContent = text;
+    hint.classList.toggle('warn',!!warn);
+    clearTimeout(hintTimer);
+    hintTimer = setTimeout(function(){
+      hint.textContent = '点击两图中有差异的位置';
+      hint.classList.remove('warn');
+    },1600);
+  }
+
+  window.restart = function(){
+    stopTimer();
+    found = []; misses = 0; seconds = 0; won = false;
+    document.getElementById('time').textContent = '0:00';
+    document.getElementById('found').textContent = '0';
+    document.getElementById('win').classList.remove('show');
+    var form = document.getElementById('score-form');
+    var hintEl = document.getElementById('score-hint');
+    if (form) form.hidden = true;
+    if (hintEl) { hintEl.textContent = ''; hintEl.className = 'score-hint'; }
+    scenes.forEach(function(sc){
+      sc.querySelectorAll('svg').forEach(function(s){ s.remove(); });
+    });
+    build();
+  };
+
+  document.getElementById('restart').addEventListener('click',restart);
+  restart();
+})();
+</script>
+</body>
+</html>

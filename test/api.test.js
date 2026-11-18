@@ -339,6 +339,77 @@ test('顾客注册成功并自动登录', async () => {
   assert.ok(r.json.data.cart, '注册后应返回购物袋');
 });
 
+test('花间榜：上榜、同人去重、按用时排名', async () => {
+  const post = (body) => call('POST', '/api/games/scores', body);
+
+  const first = await post({ game: 'puzzle', name: '测试花友', seconds: 40, moves: 12 });
+  assert.equal(first.status, 200);
+  assert.equal(first.json.data.rank, 1);
+  assert.equal(first.json.data.isRecord, true);
+
+  const worse = await post({ game: 'puzzle', name: '测试花友', seconds: 55, moves: 15 });
+  assert.equal(worse.json.data.rank, 1, '更差的成绩不应拉低名次');
+  assert.equal(worse.json.data.best.seconds, 40);
+
+  const better = await post({ game: 'puzzle', name: '测试花友', seconds: 30, moves: 9 });
+  assert.equal(better.json.data.best.seconds, 30);
+
+  await post({ game: 'puzzle', name: '另一位花友', seconds: 35, moves: 10 });
+
+  const board = await call('GET', '/api/games/leaderboard?game=puzzle');
+  assert.equal(board.status, 200);
+  const items = board.json.data.items;
+  assert.equal(items.length, 2, '同一个人只占一行');
+  assert.equal(items[0].name, '测试花友');
+  assert.equal(items[0].seconds, 30);
+  assert.equal(items[1].name, '另一位花友');
+  assert.equal(items[0].plays, 3, '该玩家一共提交过 3 局');
+});
+
+test('花间榜：参数与作弊下限校验', async () => {
+  const bad = async (body) => (await call('POST', '/api/games/scores', body)).status;
+
+  assert.equal(await bad({ game: 'tetris', name: '测试花友', seconds: 20, moves: 5 }), 400);
+  assert.equal(await bad({ game: 'puzzle', name: '测试花友', seconds: 0, moves: 5 }), 400);
+  assert.equal(await bad({ game: 'puzzle', name: '花', seconds: 20, moves: 5 }), 400);
+  assert.equal(await bad({ game: 'puzzle', seconds: 20, moves: 5 }), 400);
+  assert.equal(await bad({ game: 'memory', name: '测试花友', seconds: 20, moves: 2 }), 400);
+
+  const clean = await call('POST', '/api/games/scores', { game: 'spot', name: '<b>花</b>友', seconds: 15, moves: 0 });
+  assert.equal(clean.status, 200);
+  assert.equal(clean.json.data.name, 'b花/b友', '昵称里的尖括号会被清掉');
+});
+
+test('花间榜：概览接口给出三个游戏与总量', async () => {
+  const r = await call('GET', '/api/games/overview');
+  assert.equal(r.status, 200);
+  assert.equal(r.json.data.games.length, 3);
+  assert.deepEqual(
+    r.json.data.games.map((g) => g.game),
+    ['puzzle', 'memory', 'spot']
+  );
+  assert.ok(r.json.data.total.plays >= 4);
+});
+
+test('花间榜：登录顾客用账号昵称，不采纳前端传的名字', async () => {
+  const login = await raw('POST', '/api/auth/login', {
+    phone: '13500001111',
+    password: 'huashi2026'
+  });
+  assert.equal(login.status, 200);
+  const cookie = pickCookie(login.setCookie, 'xb_user');
+  assert.ok(cookie, '应拿到顾客会话');
+
+  const r = await fetch(url('/api/games/scores'), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', cookie },
+    body: JSON.stringify({ game: 'memory', seconds: 70, moves: 16, name: '前端乱传的名字' })
+  });
+  const body = await r.json();
+  assert.equal(r.status, 200);
+  assert.equal(body.data.name, '阿满', '登录状态下用账号昵称');
+});
+
 test('重复手机号与弱密码被拒', async () => {
   const dup = await raw('POST', '/api/auth/register', { phone: '13500001111', password: 'huashi2026' });
   assert.equal(dup.status, 409);

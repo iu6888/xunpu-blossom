@@ -3148,3 +3148,243 @@ a,
   .bgm-toggle.is-on::after { animation: none; opacity: 0; }
   .bgm-toggle:hover { transform: none; }
 }
+
+/* ==========================================================================
+   花间游戏 · 首页入口
+   ========================================================================== */
+
+.games-band {
+  position: relative;
+  padding-block: clamp(56px, 7vw, 96px);
+  background:
+    radial-gradient(90% 120% at 88% -10%, rgba(201, 162, 74, .20), transparent 62%),
+    radial-gradient(70% 100% at 4% 110%, rgba(168, 52, 43, .07), transparent 60%),
+    var(--paper-2);
+  border-block: 1px solid var(--line-soft);
+  overflow: hidden;
+}
+
+/* 角落里的一圈细线花环，作为极淡的底纹 */
+.games-band::after {
+  content: "";
+  position: absolute;
+  right: -120px;
+  bottom: -160px;
+  width: 420px;
+  height: 420px;
+  border: 1px solid rgba(201, 162, 74, .28);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.games-band__head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: clamp(24px, 4vw, 56px);
+  flex-wrap: wrap;
+}
+
+.games-title {
+  font-family: var(--serif);
+  font-size: clamp(2.1rem, 4.6vw, 3.4rem);
+  font-weight: 400;
+  line-height: 1.12;
+  letter-spacing: .12em;
+  margin: 0;
+}
+
+.games-title .stroke {
+  /* 这个尺寸下描边会糊成一团，改成实心刺桐红，和页眉小字同色 */
+  color: var(--red);
+}
+
+.games-band__head > div {
+  flex: 1 1 520px;
+  min-width: 0;
+}
+
+.games-lede {
+  max-width: 54ch;
+  margin: 18px 0 0;
+  font-size: .92rem;
+  line-height: 2;
+  color: var(--ink-soft);
+}
+
+/* ---------- 三张游戏卡 ---------- */
+.games-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(14px, 1.6vw, 22px);
+  margin-top: clamp(30px, 4vw, 48px);
+}
+
+.game-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: clamp(22px, 2.2vw, 30px);
+  background: var(--cream);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-inner);
+  color: inherit;
+  transition: transform .5s var(--ease), box-shadow .5s var(--ease), border-color .5s var(--ease);
+}
+
+.game-tile:hover {
+  transform: translateY(-6px);
+  border-color: rgba(201, 162, 74, .55);
+  box-shadow: 0 26px 50px -34px rgba(60, 40, 25, .6);
+}
+
+.game-tile__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.game-tile__num {
+  font-family: var(--mono);
+  font-size: .66rem;
+  letter-spacing: .2em;
+  color: var(--red);
+}
+
+.game-tile__icon {
+  width: 44px;
+  height: 44px;
+  flex: none;
+}
+
+.game-tile h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.12rem, 1.5vw, 1.34rem);
+  font-weight: 400;
+  letter-spacing: .12em;
+}
+
+.game-tile p {
+  margin: 0;
+  font-size: .82rem;
+  line-height: 1.9;
+  color: var(--ink-soft);
+}
+
+.game-tile__best {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px dashed var(--line);
+  font-size: .72rem;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+.game-tile__best b {
+  color: var(--gold);
+  font-weight: 400;
+  font-family: var(--serif);
+}
+
+/* ---------- 榜首条 ---------- */
+.games-rank {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 26px);
+  flex-wrap: wrap;
+  margin-top: clamp(18px, 2.4vw, 26px);
+  padding: 16px clamp(18px, 2vw, 26px);
+  background: rgba(251, 247, 239, .72);
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  font-size: .78rem;
+  color: var(--ink-soft);
+}
+
+.games-rank__label {
+  font-size: .68rem;
+  letter-spacing: .26em;
+  color: var(--red);
+  white-space: nowrap;
+}
+
+.games-rank__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(10px, 2vw, 28px);
+  flex: 1;
+  min-width: 0;
+}
+
+.games-rank__item {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.games-rank__item em {
+  font-style: normal;
+  font-size: .68rem;
+  letter-spacing: .16em;
+  color: var(--muted);
+}
+
+.games-rank__item b {
+  font-weight: 400;
+  color: var(--ink);
+}
+
+.games-rank__item span {
+  font-family: var(--serif);
+  color: var(--red);
+}
+
+.games-rank__more {
+  font-size: .74rem;
+  letter-spacing: .1em;
+  color: var(--red);
+  border-bottom: 1px solid rgba(168, 52, 43, .3);
+  padding-bottom: 2px;
+  white-space: nowrap;
+}
+
+.games-rank__more:hover { border-color: var(--red); }
+
+@media (max-width: 900px) {
+  .games-grid { grid-template-columns: 1fr; }
+
+  /* 窄屏上把「花间榜」横条改成两行：标题 + 链接在上，三条纪录竖排在下面 */
+  .games-rank {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 10px 14px;
+    border-radius: var(--radius-inner);
+    padding: 18px 20px;
+  }
+
+  .games-rank__list {
+    grid-column: 1 / -1;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .games-rank__more {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-tile:hover { transform: none; }
+}

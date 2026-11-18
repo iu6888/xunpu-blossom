@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>花间游戏 · 蟳埔花事｜三个小游戏与花间榜</title>
+<meta name="description" content="蟳埔花事的三个花间小游戏：九宫格拼图、花签配对、找不同。无需注册，成绩可登上花间榜。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261118">
+<style>
+  .game-list{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+  .game-card{
+    display:flex;align-items:center;gap:20px;
+    background:var(--cream);border:1px solid var(--line);
+    padding:22px 24px;text-decoration:none;color:var(--ink);
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease);
+  }
+  .game-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(36,31,26,.08)}
+  .game-card .g-num{
+    font-family:Georgia,serif;font-size:.75rem;letter-spacing:.2em;
+    color:var(--red);writing-mode:vertical-rl;
+  }
+  .game-card .g-icon{width:56px;height:56px;flex:none}
+  .game-card .g-body{flex:1;min-width:0}
+  .game-card h2{font-size:1.25rem;font-weight:400;letter-spacing:.16em;margin-bottom:6px}
+  .game-card p{font-size:.8rem;color:var(--ink-soft);letter-spacing:.06em;line-height:1.7}
+  .game-card .g-best{
+    display:block;margin-top:6px;font-size:.7rem;letter-spacing:.12em;color:var(--gold);
+    font-family:Georgia,serif;
+  }
+  .game-card .g-arrow{font-family:Georgia,serif;color:var(--red);font-size:1.1rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html#board">花间榜</a>
+      <a href="../collection.html">城市礼物</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">蟳埔花事 · 花韵文化</div>
+    <h1>花间<br><span class="stroke">游戏</span></h1>
+    <div class="sub">Three little games in the garden</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="game-list">
+
+    <a class="game-card" href="puzzle.html">
+      <span class="g-num">01</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <rect x="4" y="4" width="22" height="22" fill="#A8342B"/>
+        <rect x="30" y="4" width="22" height="22" fill="#E3C882"/>
+        <rect x="4" y="30" width="22" height="22" fill="#C9A24A"/>
+        <rect x="30" y="30" width="22" height="22" fill="none" stroke="#A8342B" stroke-width="1.5" stroke-dasharray="4 3"/>
+      </svg>
+      <div class="g-body">
+        <h2>拼图</h2>
+        <p>九宫格花冠，点击两块交换位置，复原头顶花园。</p>
+        <span class="g-best" data-best="puzzle"></span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="memory.html">
+      <span class="g-num">02</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <rect x="6" y="10" width="20" height="32" rx="2" fill="#4C6157"/>
+        <rect x="30" y="10" width="20" height="32" rx="2" fill="#FBF7EF" stroke="#A8342B" stroke-width="1.5"/>
+        <circle cx="40" cy="26" r="7" fill="#A8342B"/>
+      </svg>
+      <div class="g-body">
+        <h2>翻卡片</h2>
+        <p>十六张花签，两两配对，考验你的记忆力。</p>
+        <span class="g-best" data-best="memory"></span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="spot.html">
+      <span class="g-num">03</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <circle cx="22" cy="24" r="13" fill="none" stroke="#A8342B" stroke-width="2"/>
+        <line x1="32" y1="34" x2="46" y2="48" stroke="#A8342B" stroke-width="3" stroke-linecap="round"/>
+        <circle cx="22" cy="24" r="4" fill="#C9A24A"/>
+      </svg>
+      <div class="g-body">
+        <h2>找不同</h2>
+        <p>两座花园，三处不同，眼疾手快找出来。</p>
+        <span class="g-best" data-best="spot"></span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+  </div>
+
+  <div class="panel board" id="board" data-board="puzzle">
+    <div class="board__head">
+      <div class="board__title">花间榜<small>Fastest hands in the garden</small></div>
+      <div class="board__tabs">
+        <button class="tab is-active" type="button" data-tab="puzzle">拼图</button>
+        <button class="tab" type="button" data-tab="memory">翻卡片</button>
+        <button class="tab" type="button" data-tab="spot">找不同</button>
+      </div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 XUNPU BLOSSOM · 泉州<br>
+    纯前端小游戏 · 无需注册 · 成绩记入花间榜
+  </footer>
+
+</div>
+
+<script src="assets/leaderboard.js?v=20261118"></script>
+<script>
+/* 三张卡片上挂各自的最好成绩，让人一眼看到要破的纪录 */
+(function () {
+  fetch('/api/games/overview', { credentials: 'same-origin' })
+    .then(function (r) { return r.json(); })
+    .then(function (res) {
+      var data = res && res.data;
+      if (!data || !data.games) return;
+      data.games.forEach(function (g) {
+        var el = document.querySelector('[data-best="' + g.game + '"]');
+        if (!el) return;
+        if (!g.items.length) {
+          el.textContent = '还没有人上榜';
+          return;
+        }
+        el.textContent = '榜首 ' + g.items[0].name + ' · ' + XBGame.fmt(g.items[0].seconds);
+      });
+    })
+    .catch(function () { /* 榜单读不到就不显示 */ });
+})();
+</script>
+</body>
+</html>

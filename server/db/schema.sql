@@ -208,3 +208,18 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_events_day ON events(day, type);
+
+/* ---------- 花间游戏 · 战绩 ---------- */
+CREATE TABLE IF NOT EXISTS game_scores (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  game        TEXT    NOT NULL,           -- puzzle / memory / spot
+  player_key  TEXT    NOT NULL,           -- c<customer_id> 或 n<昵称小写>，用于同人去重
+  player_name TEXT    NOT NULL,
+  customer_id INTEGER,
+  seconds     INTEGER NOT NULL,
+  moves       INTEGER NOT NULL DEFAULT 0,
+  ip          TEXT,
+  created_at  TEXT    NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_game_scores_rank ON game_scores(game, seconds, moves);
+CREATE INDEX IF NOT EXISTS idx_game_scores_player ON game_scores(game, player_key);

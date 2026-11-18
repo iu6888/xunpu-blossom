@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>拼图 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="九宫格花冠被乱序摆放，点击两块交换位置，复原蟳埔女头顶的花园。用最短时间登上花间榜。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261118">
+<style>
+  .puzzle-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:4px;
+    background:var(--line);border:1px solid var(--line);
+  }
+  .tile{
+    aspect-ratio:1;cursor:pointer;
+    background-repeat:no-repeat;
+    transition:outline .15s,transform .2s var(--ease);
+    outline:0 solid var(--red);outline-offset:-3px;
+  }
+  .tile:hover{transform:scale(.97)}
+  .tile.selected{outline-width:3px}
+  .tile.done{cursor:default}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">01 · 拼图</div>
+    <h1>复原<br><span class="stroke">花冠</span></h1>
+    <div class="sub">Swap two tiles to restore the crown</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>步数 <b id="moves">0</b></span>
+      <span>用时 <b id="time">0:00</b></span>
+      <button class="btn ghost" id="restart" style="padding:7px 18px">重开</button>
+    </div>
+    <div class="puzzle-grid" id="grid"></div>
+    <p style="margin-top:14px;font-size:.78rem;color:var(--ink-soft);letter-spacing:.08em;line-height:1.8">
+      点击一块花片选中，再点另一块交换位置。拼回完整花冠即获胜。
+    </p>
+  </div>
+
+  <div class="panel board" data-board="puzzle" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 拼图<small>Fastest crowns restored</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">蟳埔花事 · 花间游戏</footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">拼图完成</div>
+    <h2>头顶花园</h2>
+    <p id="win-text"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：簪花小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <button class="btn" onclick="restart()">再玩一次</button>
+  </div>
+</div>
+
+<script src="assets/flower.js?v=20261118"></script>
+<script src="assets/leaderboard.js?v=20261118"></script>
+<script>
+(function(){
+  const N = 3;
+  const grid = document.getElementById('grid');
+  const img = svgToDataURI(crownArtSVG());
+  let board = [], selected = -1, moves = 0, seconds = 0, timer = null, won = false;
+
+  function shuffle(){
+    do{
+      board = Array.from({length:9},(_,i)=>i);
+      for(let i=board.length-1;i>0;i--){
+        const j = Math.floor(Math.random()*(i+1));
+        [board[i],board[j]] = [board[j],board[i]];
+      }
+    }while(board.every((v,i)=>v===i));
+  }
+
+  function tileStyle(p){
+    const col = p%N, row = Math.floor(p/N);
+    return 'background-image:url("'+img+'");background-size:300% 300%;'+
+      'background-position:'+(col*50)+'% '+(row*50)+'%;';
+  }
+
+  function render(){
+    grid.innerHTML = '';
+    board.forEach(function(p,i){
+      const d = document.createElement('div');
+      d.className = 'tile'+(i===selected?' selected':'')+(won?' done':'');
+      d.style.cssText += tileStyle(p);
+      d.addEventListener('click',function(){ pick(i); });
+      grid.appendChild(d);
+    });
+    document.getElementById('moves').textContent = moves;
+  }
+
+  function pick(i){
+    if(won) return;
+    startTimer();
+    if(selected === -1){ selected = i; render(); return; }
+    if(selected === i){ selected = -1; render(); return; }
+    [board[selected],board[i]] = [board[i],board[selected]];
+    selected = -1; moves++;
+    render();
+    if(board.every((v,idx)=>v===idx)){
+      won = true; stopTimer();
+      document.getElementById('win-text').textContent =
+        '用了 '+moves+' 步 · '+fmt(seconds)+'，花冠重新绽放。';
+      setTimeout(function(){
+        document.getElementById('win').classList.add('show');
+        render();
+        XBGame.finish({ game:'puzzle', seconds:seconds, moves:moves });
+      },400);
+    }
+  }
+
+  function fmt(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+  function startTimer(){
+    if(timer) return;
+    timer = setInterval(function(){
+      seconds++;
+      document.getElementById('time').textContent = fmt(seconds);
+    },1000);
+  }
+  function stopTimer(){ clearInterval(timer); timer = null; }
+
+  window.restart = function(){
+    stopTimer();
+    moves = 0; seconds = 0; selected = -1; won = false;
+    document.getElementById('time').textContent = '0:00';
+    document.getElementById('win').classList.remove('show');
+    var form = document.getElementById('score-form');
+    var hint = document.getElementById('score-hint');
+    if (form) form.hidden = true;
+    if (hint) { hint.textContent = ''; hint.className = 'score-hint'; }
+    shuffle(); render();
+  };
+
+  document.getElementById('restart').addEventListener('click',restart);
+  restart();
+})();
+</script>
+</body>
+</html>

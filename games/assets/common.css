@@ -1,0 +1,169 @@
+/* 花间游戏 · 共享样式（与蟳埔花事主站同配色） */
+:root{
+  --paper:#F3EEE4; --cream:#FBF7EF; --ink:#241F1A; --ink-soft:#6B6357;
+  --line:rgba(36,31,26,.12); --red:#A8342B; --red-deep:#7C231D;
+  --gold:#C9A24A; --gold-l:#E3C882; --sea:#4C6157; --coral:#C4624E; --green:#7D8C6B;
+  --serif:"Songti SC","STSong","SimSun",serif;
+  --ease:cubic-bezier(.22,1,.36,1);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:var(--serif); background:var(--paper); color:var(--ink);
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  padding:32px 20px 48px;
+}
+.wrap{width:100%;max-width:520px}
+
+.eyebrow{
+  font-size:.72rem; letter-spacing:.32em; color:var(--red);
+  text-transform:uppercase; margin-bottom:12px;
+}
+h1{font-size:clamp(2rem,8vw,2.8rem);font-weight:400;letter-spacing:.14em;line-height:1.3}
+h1 .stroke{color:transparent;-webkit-text-stroke:1px var(--red)}
+.sub{
+  margin-top:8px; font-size:.78rem; letter-spacing:.22em;
+  color:var(--ink-soft); font-family:Georgia,serif; font-style:italic;
+}
+.rule{margin:22px 0;border:none;border-top:1px solid var(--line);position:relative}
+.rule::after{content:"";position:absolute;left:0;top:-1px;width:56px;border-top:2px solid var(--red)}
+
+.back{
+  display:inline-block; margin-bottom:18px;
+  font-size:.8rem; letter-spacing:.14em; color:var(--ink-soft);
+  text-decoration:none; border-bottom:1px solid var(--line); padding-bottom:3px;
+}
+.back:hover{color:var(--red);border-color:var(--red)}
+
+.panel{background:var(--cream);border:1px solid var(--line);padding:24px}
+
+.stat-bar{
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:.85rem; letter-spacing:.1em; color:var(--ink-soft);
+  margin-bottom:18px;
+}
+.stat-bar b{color:var(--red);font-weight:400;font-family:Georgia,serif}
+
+.btn{
+  display:inline-block; padding:11px 28px;
+  background:var(--red); color:var(--cream); border:1px solid var(--red);
+  font-family:var(--serif); font-size:.85rem; letter-spacing:.18em;
+  cursor:pointer; transition:background .3s var(--ease);
+}
+.btn:hover{background:var(--red-deep)}
+.btn.ghost{background:transparent;color:var(--red)}
+.btn.ghost:hover{background:rgba(168,52,43,.06)}
+
+.footer{
+  margin-top:36px; text-align:center;
+  font-size:.72rem; letter-spacing:.2em; color:var(--ink-soft); line-height:2;
+}
+
+/* 胜利遮罩 */
+.win-mask{
+  position:fixed; inset:0; background:rgba(36,31,26,.5);
+  display:flex; align-items:center; justify-content:center;
+  z-index:100; opacity:0; pointer-events:none; transition:opacity .35s;
+}
+.win-mask.show{opacity:1;pointer-events:auto}
+.win-box{
+  background:var(--cream); border:1px solid var(--line);
+  padding:40px 36px; text-align:center; width:88%; max-width:320px;
+  position:relative; transform:translateY(14px); transition:transform .35s var(--ease);
+}
+.win-mask.show .win-box{transform:translateY(0)}
+.win-box::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--red)}
+.win-box .w-eyebrow{font-size:.7rem;letter-spacing:.3em;color:var(--red);margin-bottom:14px}
+.win-box h2{font-size:1.7rem;font-weight:400;letter-spacing:.12em;margin-bottom:12px}
+.win-box p{font-size:.88rem;color:var(--ink-soft);line-height:2;margin-bottom:22px}
+
+/* ==========================================================================
+   与主站衔接：顶部返回条 / 排行榜 / 上榜表单
+   ========================================================================== */
+
+.site-bar{
+  width:100%;display:flex;align-items:center;justify-content:space-between;
+  gap:12px;margin-bottom:26px;padding-bottom:12px;border-bottom:1px solid var(--line);
+  font-size:.74rem;letter-spacing:.16em;color:var(--ink-soft);
+}
+.site-bar a{color:var(--ink-soft);border-bottom:1px solid transparent;padding-bottom:2px}
+.site-bar a:hover{color:var(--red);border-color:var(--red)}
+.site-bar__right{display:flex;gap:16px}
+
+/* ---------- 排行榜 ---------- */
+.board{margin-top:26px}
+.board__head{
+  display:flex;align-items:flex-end;justify-content:space-between;
+  gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line);
+}
+.board__title{font-size:1.1rem;font-weight:400;letter-spacing:.14em}
+.board__title small{
+  display:block;margin-top:6px;font-size:.68rem;letter-spacing:.2em;
+  color:var(--ink-soft);font-family:Georgia,serif;font-style:italic;
+}
+.board__tabs{display:flex;gap:6px}
+.tab{
+  background:transparent;border:1px solid var(--line);
+  padding:6px 14px;font-family:var(--serif);font-size:.76rem;
+  letter-spacing:.12em;color:var(--ink-soft);cursor:pointer;
+  transition:all .25s var(--ease);
+}
+.tab:hover{border-color:var(--red);color:var(--red)}
+.tab.is-active{background:var(--red);border-color:var(--red);color:var(--cream)}
+
+.board__list{margin-top:6px}
+.board__row{
+  display:grid;grid-template-columns:26px 1fr auto auto;
+  gap:12px;align-items:baseline;
+  padding:11px 2px;border-bottom:1px solid var(--line);
+  font-size:.84rem;
+}
+.board__row:last-child{border-bottom:0}
+.board__rank{
+  font-family:Georgia,serif;font-size:.78rem;color:var(--ink-soft);
+  text-align:center;
+}
+.board__row:nth-child(1) .board__rank{color:var(--gold);font-size:.92rem}
+.board__row:nth-child(2) .board__rank,
+.board__row:nth-child(3) .board__rank{color:var(--red)}
+.board__name{
+  letter-spacing:.08em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.board__name i{
+  font-style:normal;font-size:.66rem;letter-spacing:.14em;
+  color:var(--ink-soft);margin-left:8px;opacity:.8;
+}
+.board__time{font-family:Georgia,serif;color:var(--red);font-size:.86rem}
+.board__moves{font-size:.7rem;color:var(--ink-soft);letter-spacing:.1em;min-width:62px;text-align:right;white-space:nowrap}
+.board__empty{
+  padding:22px 0;text-align:center;font-size:.8rem;color:var(--ink-soft);letter-spacing:.12em;
+}
+.board__foot{
+  margin-top:14px;padding-top:12px;border-top:1px solid var(--line);
+  font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft);
+  display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;
+}
+
+/* ---------- 上榜表单（胜利弹窗内） ---------- */
+.score-form{margin:0 0 20px;text-align:left}
+.score-form[hidden]{display:none}
+.score-label{
+  display:block;font-size:.7rem;letter-spacing:.22em;color:var(--red);
+  margin-bottom:10px;text-align:center;
+}
+.score-row{display:flex;gap:8px}
+.score-row input{
+  flex:1;min-width:0;background:var(--paper);border:1px solid var(--line);
+  padding:10px 12px;font-family:var(--serif);font-size:.85rem;
+  letter-spacing:.1em;color:var(--ink);
+}
+.score-row input:focus{outline:none;border-color:var(--red)}
+.score-row .btn{padding:10px 18px;letter-spacing:.14em;white-space:nowrap}
+.score-hint{
+  margin-top:10px;font-size:.74rem;line-height:1.8;letter-spacing:.08em;
+  color:var(--ink-soft);text-align:center;min-height:1.2em;
+}
+.score-hint b{color:var(--red);font-weight:400;font-family:Georgia,serif}
+.score-hint.is-warn{color:var(--red)}
+
+/* 胜利弹窗里的次要按钮与主按钮并排 */
+.win-box .btn.ghost{margin-top:0}

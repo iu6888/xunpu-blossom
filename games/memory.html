@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>翻卡片 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="十六张花签，八种花色各两张，两两配对。记住位置，用最少步数翻完满园花开，登上花间榜。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261118">
+<style>
+  .memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .card{aspect-ratio:3/4;perspective:700px;cursor:pointer}
+  .card-inner{
+    position:relative;width:100%;height:100%;
+    transform-style:preserve-3d;transition:transform .45s var(--ease);
+  }
+  .card.flipped .card-inner{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;
+    display:flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);
+  }
+  .face.back-face{
+    background:var(--paper);
+  }
+  .face.back-face svg{width:60%;height:60%;opacity:.5}
+  .face.front-face{
+    background:var(--cream);transform:rotateY(180deg);
+  }
+  .face.front-face svg{width:76%;height:76%}
+  .card.matched{cursor:default}
+  .card.matched .face.front-face{border-color:var(--gold);box-shadow:inset 0 0 0 2px var(--gold-l)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">02 · 翻卡片</div>
+    <h1>花签<br><span class="stroke">配对</span></h1>
+    <div class="sub">Match the pairs of blossoms</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>步数 <b id="moves">0</b></span>
+      <span>用时 <b id="time">0:00</b></span>
+      <button class="btn ghost" id="restart" style="padding:7px 18px">重开</button>
+    </div>
+    <div class="memory-grid" id="grid"></div>
+  </div>
+
+  <div class="panel board" data-board="memory" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 翻卡片<small>Fewest moves, shortest time</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">蟳埔花事 · 花间游戏</footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">全部配对</div>
+    <h2>满园花开</h2>
+    <p id="win-text"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：簪花小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <button class="btn" onclick="restart()">再玩一次</button>
+  </div>
+</div>
+
+<script src="assets/flower.js?v=20261118"></script>
+<script src="assets/leaderboard.js?v=20261118"></script>
+<script>
+(function(){
+  const COLORS = ['#A8342B','#C9A24A','#4C6157','#C4624E','#E3C882','#7D8C6B','#7C231D','#6B6357'];
+  const grid = document.getElementById('grid');
+  let deck = [], first = -1, lock = false, moves = 0, matched = 0,
+      seconds = 0, timer = null;
+
+  function backSVG(){
+    return '<svg viewBox="0 0 100 100">'+flowerSVG(50,50,40,'#A8342B','#C9A24A',-18)+'</svg>';
+  }
+  function frontSVG(color){
+    return '<svg viewBox="0 0 100 100">'+flowerSVG(50,50,42,color,'#E3C882',-18)+'</svg>';
+  }
+
+  function build(){
+    deck = [];
+    COLORS.forEach(function(c,i){
+      deck.push({color:c,pair:i,matched:false});
+      deck.push({color:c,pair:i,matched:false});
+    });
+    for(let i=deck.length-1;i>0;i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [deck[i],deck[j]] = [deck[j],deck[i]];
+    }
+  }
+
+  function render(){
+    grid.innerHTML = '';
+    deck.forEach(function(c,i){
+      const el = document.createElement('div');
+      el.className = 'card'+(c.matched?' matched flipped':'');
+      el.innerHTML = '<div class="card-inner">'+
+        '<div class="face back-face">'+backSVG()+'</div>'+
+        '<div class="face front-face">'+frontSVG(c.color)+'</div></div>';
+      el.addEventListener('click',function(){ flip(i,el); });
+      grid.appendChild(el);
+    });
+    document.getElementById('moves').textContent = moves;
+  }
+
+  function flip(i,el){
+    if(lock || deck[i].matched || el.classList.contains('flipped')) return;
+    startTimer();
+    el.classList.add('flipped');
+
+    if(first === -1){ first = i; return; }
+
+    moves++;
+    document.getElementById('moves').textContent = moves;
+    const a = first, b = i;
+    first = -1;
+
+    if(deck[a].pair === deck[b].pair){
+      deck[a].matched = deck[b].matched = true;
+      matched += 2;
+      grid.children[a].classList.add('matched');
+      grid.children[b].classList.add('matched');
+      if(matched === deck.length){
+        stopTimer();
+        document.getElementById('win-text').textContent =
+          '用了 '+moves+' 步 · '+fmt(seconds)+'，八对花签全部归位。';
+        setTimeout(function(){
+          document.getElementById('win').classList.add('show');
+          XBGame.finish({ game:'memory', seconds:seconds, moves:moves });
+        },500);
+      }
+    }else{
+      lock = true;
+      setTimeout(function(){
+        grid.children[a].classList.remove('flipped');
+        grid.children[b].classList.remove('flipped');
+        lock = false;
+      },800);
+    }
+  }
+
+  function fmt(s){ return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+  function startTimer(){
+    if(timer) return;
+    timer = setInterval(function(){
+      seconds++;
+      document.getElementById('time').textContent = fmt(seconds);
+    },1000);
+  }
+  function stopTimer(){ clearInterval(timer); timer = null; }
+
+  window.restart = function(){
+    stopTimer();
+    moves = 0; matched = 0; first = -1; lock = false; seconds = 0;
+    document.getElementById('time').textContent = '0:00';
+    document.getElementById('win').classList.remove('show');
+    var form = document.getElementById('score-form');
+    var hint = document.getElementById('score-hint');
+    if (form) form.hidden = true;
+    if (hint) { hint.textContent = ''; hint.className = 'score-hint'; }
+    build(); render();
+  };
+
+  document.getElementById('restart').addEventListener('click',restart);
+  restart();
+})();
+</script>
+</body>
+</html>
