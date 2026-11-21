@@ -166,7 +166,16 @@ module.exports = function register(router) {
   /** 当前登录的顾客 */
   router.get('/api/auth/me', async (ctx) => {
     if (!ctx.customer) throw unauthorized('未登录');
-    return { customer: ctx.customer, orders: myOrders(ctx.customer.id, { limit: 1 }).stats };
+    const activeCoupons = getDb().get(
+      "SELECT COUNT(*) AS n FROM coupons WHERE customer_id = ? AND status = 'active' AND expires_at > ?",
+      ctx.customer.id,
+      new Date().toISOString()
+    ).n;
+    return {
+      customer: ctx.customer,
+      orders: myOrders(ctx.customer.id, { limit: 1 }).stats,
+      coupons: { active: activeCoupons }
+    };
   });
 
   /** 修改昵称 / 邮箱 */

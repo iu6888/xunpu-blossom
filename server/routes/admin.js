@@ -12,6 +12,7 @@ const { badRequest, notFound, conflict, send } = require('../lib/http');
 const { orderOut, inquiryOut, money, toYuan, ORDER_STATUS, ORDER_FLOW, INQUIRY_STATUS, INQUIRY_TYPES, parseJson } = require('../lib/format');
 const { maskPhone } = require('../lib/customer-auth');
 const { dayKey, recentDays, hashPassword, verifyPassword } = require('../lib/security');
+const { toPublic, effectiveStatus } = require('../lib/coupons');
 
 const ORDER_STATUS_KEYS = Object.keys(ORDER_STATUS);
 const INQUIRY_STATUS_KEYS = Object.keys(INQUIRY_STATUS);
@@ -911,6 +912,7 @@ module.exports = function register(router) {
     db.tx(() => {
       if (['pending', 'confirmed', 'producing'].includes(row.status)) restoreStock(row.id);
       db.run('DELETE FROM order_items WHERE order_id = ?', row.id);
+      db.run("UPDATE coupons SET status = 'active', used_at = NULL, order_id = NULL WHERE order_id = ? AND status = 'used' AND expires_at > ?", row.id, new Date().toISOString());
       db.run('DELETE FROM orders WHERE id = ?', row.id);
     });
 
@@ -924,6 +926,91 @@ module.exports = function register(router) {
     if (!row) throw notFound('询价记录不存在');
     db.run('DELETE FROM inquiries WHERE id = ?', row.id);
     return { id: row.id, deleted: true };
+  });
+
+  /* ---------- 花间游戏券 ---------- */
+
+  /** 券列表：按状态 / 券码 / 领取人筛选 */
+  router.get('/api/admin/coupons', async (ctx) => {
+    requireAdmin(ctx);
+    const db = getDb();
+    const { page, limit, offset } = pagination(ctx);
+    const nowIso = new Date().toISOString();
+    const status = String(ctx.query.get('status') || '').trim();
+    const q = String(ctx.query.get('q') || '').trim().slice(0, 40);
+
+    const where = [];
+    const params = [];
+    if (status === 'expired') {
+      where.push("c.status = 'active' AND c.expires_at <= ?");
+      params.push(nowIso);
+    } else if (status === 'active') {
+      where.push("c.status = 'active' AND c.expires_at > ?");
+      params.push(nowIso);
+    } else if (['used', 'void'].includes(status)) {
+      where.push('c.status = ?');
+      params.push(status);
+    }
+    if (q) {
+      where.push('(c.code LIKE ? OR c.title LIKE ? OR cu.nickname LIKE ? OR cu.phone LIKE ?)');
+      const like = `%${q}%`;
+      params.push(like, like, like, like);
+    }
+    const clause = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    const total = db.get(
+      `SELECT COUNT(*) AS n FROM coupons c LEFT JOIN customers cu ON cu.id = c.customer_id ${clause}`,
+      ...params
+    ).n;
+
+    const rows = db.all(
+      `SELECT c.*, cu.nickname AS customer_nickname, cu.phone AS customer_phone
+         FROM coupons c LEFT JOIN customers cu ON cu.id = c.customer_id
+         ${clause}
+        ORDER BY c.id DESC LIMIT ? OFFSET ?`,
+      ...params,
+      limit,
+      offset
+    );
+
+    const stats = db.all('SELECT status, COUNT(*) AS n FROM coupons GROUP BY status');
+    const statMap = { active: 0, used: 0, void: 0 };
+    for (const r of stats) statMap[r.status] = r.n;
+    const expired = db.get(
+      "SELECT COUNT(*) AS n FROM coupons WHERE status = 'active' AND expires_at <= ?",
+      nowIso
+    ).n;
+
+    return {
+      items: rows.map((r) => ({
+        ...toPublic(r),
+        status: effectiveStatus(r),
+        playerKey: r.player_key || '',
+        ip: r.ip || '',
+        orderId: r.order_id || null,
+        customer: r.customer_id
+          ? { id: r.customer_id, nickname: r.customer_nickname || '', phoneMasked: maskPhone(r.customer_phone || '') }
+          : null
+      })),
+      total,
+      page,
+      limit,
+      pages: Math.max(1, Math.ceil(total / limit)),
+      stats: { ...statMap, expired, all: statMap.active + statMap.used + statMap.void }
+    };
+  });
+
+  /** 作废一张未使用的券 */
+  router.post('/api/admin/coupons/:id/void', async (ctx) => {
+    requireAdmin(ctx);
+    const db = getDb();
+    const row = db.get('SELECT * FROM coupons WHERE id = ?', Number(ctx.params.id));
+    if (!row) throw notFound('券不存在');
+    if (row.status === 'used') throw conflict('这张券已经核销，不能作废');
+    if (row.status === 'void') return { coupon: toPublic(row), changed: false };
+    db.run("UPDATE coupons SET status = 'void' WHERE id = ?", row.id);
+    const fresh = db.get('SELECT * FROM coupons WHERE id = ?', row.id);
+    return { coupon: toPublic(fresh), changed: true };
   });
 
   /**
@@ -946,6 +1033,8 @@ module.exports = function register(router) {
         const rows = db.all("SELECT id, status FROM orders WHERE status IN ('pending','confirmed','producing')");
         for (const r of rows) restoreStock(r.id);
         counts.orders = db.get('SELECT COUNT(*) AS n FROM orders').n;
+        // 订单被清空后，之前核销的券回到可用状态（已过期的会显示为过期）
+        db.run("UPDATE coupons SET status = 'active', used_at = NULL, order_id = NULL WHERE status = 'used'");
         db.run('DELETE FROM order_items');
         db.run('DELETE FROM orders');
         db.run("UPDATE counters SET value = 0 WHERE name LIKE 'order:%'");
@@ -960,6 +1049,8 @@ module.exports = function register(router) {
         counts.customers = db.get('SELECT COUNT(*) AS n FROM customers').n;
         db.run('DELETE FROM customer_sessions');
         db.run('UPDATE orders SET customer_id = NULL');
+        // 顾客被清掉后，绑定账号的游戏券一并作废，避免留下无主可用券
+        db.run("UPDATE coupons SET customer_id = NULL, status = CASE WHEN status = 'active' THEN 'void' ELSE status END WHERE customer_id IS NOT NULL");
         db.run('DELETE FROM customers');
       }
 
@@ -967,6 +1058,8 @@ module.exports = function register(router) {
         counts.carts = db.get('SELECT COUNT(*) AS n FROM carts').n;
         db.run('DELETE FROM cart_items');
         db.run('DELETE FROM carts');
+        // 全量清空时券也一起清掉，避免留下无主可用券
+        db.run('DELETE FROM coupons');
       }
     });
 

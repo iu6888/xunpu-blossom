@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>配花 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="照着花单，在花市里把素馨、茉莉、含笑、玉兰、山茶与玫瑰配成花束，八单配齐。成绩记入花间榜，通关可领优惠券。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
+<style>
+  .slip-wrap{position:relative}
+  .slip{
+    position:relative;background:var(--cream);border:1px solid var(--line);
+    padding:15px 66px 15px 18px;transform:rotate(-.6deg);
+    box-shadow:0 10px 24px rgba(36,31,26,.06);
+    transition:transform .3s var(--ease),box-shadow .3s var(--ease);
+  }
+  .slip::before{content:"";position:absolute;inset:6px;border:1px solid rgba(201,162,74,.35);pointer-events:none}
+  .slip.is-miss{animation:shake .4s}
+  .slip.is-stamped{transform:rotate(.4deg) scale(1.01);box-shadow:0 16px 34px rgba(124,35,29,.16)}
+  .slip__head{
+    display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+    padding-bottom:9px;border-bottom:1px dashed var(--line);
+  }
+  .slip__no{font-family:Georgia,serif;font-size:.78rem;letter-spacing:.12em;color:var(--red)}
+  .slip__no b{font-size:1.05rem;font-weight:400}
+  .slip__no i{font-style:normal;font-size:.68rem;color:var(--ink-soft);margin-left:3px}
+  .slip__use{font-size:.68rem;letter-spacing:.16em;color:var(--ink-soft);text-align:right}
+  .slip__list{list-style:none;margin-top:10px;display:flex;flex-direction:column;gap:7px}
+  .slip__list li{display:flex;align-items:center;gap:9px;font-size:.82rem;letter-spacing:.08em}
+  .slip__list svg{width:28px;height:28px;flex:none}
+  .slip__name{transition:color .3s}
+  .slip__list em{
+    margin-left:auto;font-style:normal;font-family:Georgia,serif;
+    font-size:.78rem;letter-spacing:.04em;color:var(--red);
+  }
+  .slip__list li.done .slip__name{color:var(--ink-soft)}
+  .slip__list li.done em{color:var(--green)}
+  .slip__seal{
+    position:absolute;right:14px;top:50%;width:44px;height:44px;margin-top:-22px;
+    border:2px solid var(--red);border-radius:3px;color:var(--red);
+    display:grid;place-items:center;font-size:1.05rem;letter-spacing:.04em;
+    transform:rotate(9deg);opacity:.72;pointer-events:none;
+  }
+  .slip.is-stamped .slip__seal{
+    background:var(--red);color:var(--cream);opacity:1;
+    animation:stamp .5s var(--ease);
+  }
+
+  .bunch{
+    display:flex;align-items:center;gap:5px;flex-wrap:wrap;
+    min-height:48px;margin-top:12px;padding:7px 10px;
+    border:1px dashed var(--line);background:rgba(251,247,239,.6);
+  }
+  .bunch>span{font-size:.68rem;letter-spacing:.14em;color:var(--ink-soft)}
+  .bunch__item{display:flex;align-items:center}
+  .bunch__item svg{width:28px;height:28px;animation:pop .3s var(--ease)}
+
+  .shelf{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
+  .flower{
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 4px 7px;
+    background:var(--cream);border:1px solid var(--line);color:var(--ink);
+    font-family:var(--serif);font-size:.72rem;letter-spacing:.1em;cursor:pointer;
+    transition:transform .2s var(--ease),border-color .2s,box-shadow .2s;
+  }
+  .flower svg{width:46px;height:46px}
+  .flower:hover{transform:translateY(-2px);border-color:var(--gold);box-shadow:0 8px 16px rgba(36,31,26,.06)}
+  .flower.is-picked svg{animation:pop .32s var(--ease)}
+
+  .dots{display:flex;justify-content:center;gap:7px;margin-top:16px}
+  .dots i{
+    width:16px;height:16px;border-radius:50%;border:1px solid var(--line);
+    display:grid;place-items:center;font-style:normal;font-size:.58rem;color:var(--ink-soft);
+    transition:background .3s,border-color .3s,color .3s;
+  }
+  .dots i.on{background:var(--red);border-color:var(--red);color:var(--cream)}
+
+  .tip{
+    margin-top:13px;min-height:2.6em;font-size:.74rem;line-height:1.9;
+    letter-spacing:.08em;color:var(--ink-soft);transition:color .2s;
+  }
+  .tip.is-warn{color:var(--red)}
+  .best{
+    margin-top:10px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft);
+  }
+  .best b{color:var(--red);font-family:Georgia,serif;font-weight:400}
+
+  .win-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .win-best{margin-top:-8px!important;font-size:.72rem!important;letter-spacing:.14em;color:var(--red)!important}
+
+  @keyframes stamp{
+    0%{transform:rotate(9deg) scale(2.4);opacity:0}
+    60%{transform:rotate(9deg) scale(.92);opacity:1}
+    100%{transform:rotate(9deg) scale(1);opacity:1}
+  }
+  @keyframes pop{
+    0%{transform:scale(.5);opacity:.2}
+    70%{transform:scale(1.12)}
+    100%{transform:scale(1);opacity:1}
+  }
+  @keyframes shake{
+    0%,100%{transform:rotate(-.6deg)}
+    25%{transform:translateX(-5px) rotate(-.6deg)}
+    55%{transform:translateX(5px) rotate(-.6deg)}
+    80%{transform:translateX(-3px) rotate(-.6deg)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">05 · 花间游戏</div>
+    <h1>花市<br><span class="stroke">配花</span></h1>
+    <div class="sub">Fill eight orders before the market wakes</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>用时 <b id="time">0:00</b></span>
+      <span>已配 <b id="progress">0 / 8</b></span>
+      <span>出错 <b id="miss">0</b></span>
+      <button class="btn ghost" id="restart" type="button" style="padding:7px 18px">重开</button>
+    </div>
+
+    <div class="slip-wrap">
+      <div class="slip" id="slip">
+        <div class="slip__head">
+          <span class="slip__no">花单 <b id="order-no">1</b><i>/ 8</i></span>
+          <span class="slip__use" id="order-use">清晨 · 民宿供花</span>
+        </div>
+        <ul class="slip__list" id="order-list"></ul>
+        <div class="slip__seal" aria-hidden="true">配</div>
+      </div>
+      <div class="bunch" id="bunch" aria-live="polite"></div>
+    </div>
+
+    <div class="shelf" id="shelf"></div>
+    <div class="dots" id="dots" aria-label="花单进度"></div>
+
+    <p class="tip" id="tip">照花单点花。点错、点多都记一次出错，配齐自动换下一单。</p>
+    <p class="best" id="best"></p>
+  </div>
+
+  <div class="panel board" data-board="market" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 配花<small>Eight slips before the market closes</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 · 花间游戏<br>
+    成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）
+  </footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">八单配齐</div>
+    <h2>花市收摊</h2>
+    <p id="win-text"></p>
+    <p class="win-best" id="win-best"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：簪花小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <div class="win-actions">
+      <button class="btn" type="button" onclick="restart()">再开一市</button>
+      <a class="btn ghost" href="index.html">回游戏大厅</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/leaderboard.js?v=20261121"></script>
+<script>
+(function () {
+  'use strict';
+
+  var FLOWERS = [
+    { key: 'suxin', name: '素馨', petals: 5, color: '#FBF7EF', edge: '#D9CDB4', center: '#E3C882' },
+    { key: 'moli', name: '茉莉', petals: 7, color: '#FFFDF8', edge: '#CFC3AA', center: '#C9A24A' },
+    { key: 'hanxiao', name: '含笑', petals: 6, color: '#E9C97F', edge: '#C9A24A', center: '#A8342B' },
+    { key: 'yulan', name: '玉兰', petals: 6, color: '#E8B3A8', edge: '#C48174', center: '#F3EEE4' },
+    { key: 'shancha', name: '山茶', petals: 8, color: '#A8342B', edge: '#7C231D', center: '#E3C882' },
+    { key: 'rose', name: '玫瑰', petals: 9, color: '#C4624E', edge: '#8E3A2C', center: '#7C231D' }
+  ];
+
+  var USES = [
+    '清晨 · 民宿供花',
+    '游神 · 头饰',
+    '婚礼 · 花篮',
+    '研学 · 花束',
+    '伴手礼 · 车挂',
+    '立夏 · 供桌',
+    '海风 · 簪花围',
+    '重阳 · 敬老'
+  ];
+
+  var TOTAL = 8;
+  var DEFAULT_TIP = '照花单点花。点错、点多都记一次出错，配齐自动换下一单。';
+
+  var slipEl = document.getElementById('slip');
+  var listEl = document.getElementById('order-list');
+  var noEl = document.getElementById('order-no');
+  var useEl = document.getElementById('order-use');
+  var bunchEl = document.getElementById('bunch');
+  var shelfEl = document.getElementById('shelf');
+  var dotsEl = document.getElementById('dots');
+  var timeEl = document.getElementById('time');
+  var progressEl = document.getElementById('progress');
+  var missEl = document.getElementById('miss');
+  var tipEl = document.getElementById('tip');
+  var bestEl = document.getElementById('best');
+  var winEl = document.getElementById('win');
+  var winText = document.getElementById('win-text');
+  var winBest = document.getElementById('win-best');
+
+  var state = {
+    index: 0, order: null, doneCount: 0, misses: 0,
+    seconds: 0, timer: null, started: false, locked: false, won: false
+  };
+
+  var tipTimer = null;
+
+  /* ---------------- 工具 ---------------- */
+
+  function bloomSVG(f) {
+    var r = 50;
+    var s = '';
+    for (var i = 0; i < f.petals; i++) {
+      var a = 360 / f.petals * i;
+      s += '<ellipse cx="0" cy="' + (-r * 0.5).toFixed(2) + '" rx="' + (r * 0.33).toFixed(2) +
+        '" ry="' + (r * 0.56).toFixed(2) + '" transform="rotate(' + a.toFixed(1) + ')" fill="' +
+        f.color + '" stroke="' + f.edge + '" stroke-width="2"/>';
+    }
+    s += '<circle r="' + (r * 0.26).toFixed(2) + '" fill="' + f.center + '"/>';
+    return '<svg viewBox="-60 -60 120 120" aria-hidden="true">' + s + '</svg>';
+  }
+
+  function byKey(key) {
+    for (var i = 0; i < FLOWERS.length; i++) if (FLOWERS[i].key === key) return FLOWERS[i];
+    return FLOWERS[0];
+  }
+
+  function shuffle(list) {
+    var arr = list.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function fmt(sec) {
+    var s = Math.max(0, Math.round(sec));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function updateBestLine() {
+    bestEl.textContent = '成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）';
+  }
+
+  /* ---------------- 花单 ---------------- */
+
+  function makeOrder(n) {
+    var kinds = n < 2 ? 2 : (n < 5 ? 3 : 4);
+    var picked = shuffle(FLOWERS).slice(0, kinds);
+    var items = picked.map(function (f) {
+      return { key: f.key, need: 1 + (Math.random() < (n < 3 ? 0.12 : 0.32) ? 1 : 0), got: 0 };
+    });
+
+    var total = 0;
+    items.forEach(function (it) { total += it.need; });
+    for (var i = items.length - 1; i >= 0 && total > 6; i--) {
+      if (items[i].need > 1) { items[i].need--; total--; }
+    }
+    if (total < 3) items[0].need += 1;
+
+    return { items: items, use: USES[n % USES.length] };
+  }
+
+  /* ---------------- 渲染 ---------------- */
+
+  function renderSlip() {
+    var o = state.order;
+    noEl.textContent = String(state.index + 1);
+    useEl.textContent = o.use;
+
+    listEl.innerHTML = o.items.map(function (it) {
+      var f = byKey(it.key);
+      var done = it.got >= it.need;
+      return '<li class="' + (done ? 'done' : '') + '">' + bloomSVG(f) +
+        '<span class="slip__name">' + f.name + '</span>' +
+        '<em>' + it.got + ' / ' + it.need + '</em></li>';
+    }).join('');
+
+    progressEl.textContent = state.doneCount + ' / ' + TOTAL;
+    renderBunch();
+    renderDots();
+  }
+
+  function renderBunch() {
+    var picked = [];
+    state.order.items.forEach(function (it) {
+      for (var i = 0; i < it.got; i++) picked.push(byKey(it.key));
+    });
+    bunchEl.innerHTML = picked.length
+      ? '<span>花篮</span>' + picked.map(function (f) {
+        return '<span class="bunch__item">' + bloomSVG(f) + '</span>';
+      }).join('')
+      : '<span>花篮还空着</span>';
+  }
+
+  function renderDots() {
+    var parts = '';
+    for (var i = 0; i < TOTAL; i++) {
+      parts += '<i class="' + (i < state.doneCount ? 'on' : '') + '" aria-hidden="true">' +
+        (i < state.doneCount ? '✓' : '') + '</i>';
+    }
+    dotsEl.innerHTML = parts;
+  }
+
+  function say(text, warn) {
+    tipEl.textContent = text;
+    tipEl.classList.toggle('is-warn', !!warn);
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(function () {
+      tipEl.textContent = DEFAULT_TIP;
+      tipEl.classList.remove('is-warn');
+    }, 2000);
+  }
+
+  /* ---------------- 计时 ---------------- */
+
+  function startTimer() {
+    if (state.started || state.won) return;
+    state.started = true;
+    state.timer = setInterval(function () {
+      state.seconds++;
+      timeEl.textContent = fmt(state.seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  /* ---------------- 玩法 ---------------- */
+
+  function miss(text, btn) {
+    state.misses++;
+    missEl.textContent = String(state.misses);
+    say(text, true);
+    slipEl.classList.remove('is-miss');
+    void slipEl.offsetWidth;
+    slipEl.classList.add('is-miss');
+    if (btn) {
+      btn.classList.remove('is-picked');
+      void btn.offsetWidth;
+    }
+  }
+
+  function pick(key, btn) {
+    if (state.won || state.locked) return;
+    startTimer();
+
+    var f = byKey(key);
+    var item = null;
+    for (var i = 0; i < state.order.items.length; i++) {
+      if (state.order.items[i].key === key) { item = state.order.items[i]; break; }
+    }
+
+    if (!item) { miss('这一单不要' + f.name, btn); return; }
+    if (item.got >= item.need) { miss(f.name + '已经够了', btn); return; }
+
+    item.got++;
+    btn.classList.remove('is-picked');
+    void btn.offsetWidth;
+    btn.classList.add('is-picked');
+    renderSlip();
+
+    var ready = state.order.items.every(function (it) { return it.got >= it.need; });
+    if (ready) complete();
+  }
+
+  function complete() {
+    state.locked = true;
+    state.doneCount++;
+    slipEl.classList.add('is-stamped');
+    progressEl.textContent = state.doneCount + ' / ' + TOTAL;
+    renderDots();
+
+    setTimeout(function () {
+      if (state.doneCount >= TOTAL) { win(); return; }
+      state.index++;
+      state.order = makeOrder(state.index);
+      state.locked = false;
+      slipEl.classList.remove('is-stamped');
+      renderSlip();
+      say('第 ' + (state.index + 1) + ' 单来了：' + state.order.use, false);
+    }, 640);
+  }
+
+  function win() {
+    state.won = true;
+    stopTimer();
+    winText.textContent = '八张花单全部配齐，用时 ' + fmt(state.seconds) + '，出错 ' + state.misses + ' 次。';
+    winBest.textContent = '成绩记入花间榜，通关可领 ¥5 券';
+    updateBestLine();
+    setTimeout(function () {
+      winEl.classList.add('show');
+      XBGame.finish({ game: 'market', seconds: state.seconds, moves: state.misses });
+    }, 500);
+  }
+
+  function build() {
+    stopTimer();
+    state.index = 0;
+    state.doneCount = 0;
+    state.misses = 0;
+    state.seconds = 0;
+    state.started = false;
+    state.locked = false;
+    state.won = false;
+    state.order = makeOrder(0);
+
+    winEl.classList.remove('show');
+    var sf = document.getElementById('score-form');
+    var sh = document.getElementById('score-hint');
+    if (sf) sf.hidden = true;
+    if (sh) { sh.textContent = ''; sh.className = 'score-hint'; }
+    winBest.textContent = '';
+    slipEl.classList.remove('is-stamped', 'is-miss');
+    missEl.textContent = '0';
+    timeEl.textContent = '0:00';
+    tipEl.textContent = DEFAULT_TIP;
+    tipEl.classList.remove('is-warn');
+
+    shelfEl.innerHTML = FLOWERS.map(function (f) {
+      return '<button class="flower" type="button" data-flower="' + f.key + '">' +
+        bloomSVG(f) + '<span>' + f.name + '</span></button>';
+    }).join('');
+
+    renderSlip();
+    updateBestLine();
+  }
+
+  window.restart = build;
+
+  /* ---------------- 事件 ---------------- */
+
+  shelfEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-flower]');
+    if (!btn) return;
+    pick(btn.dataset.flower, btn);
+  });
+
+  document.getElementById('restart').addEventListener('click', build);
+
+  build();
+})();
+</script>
+</body>
+</html>

@@ -24,6 +24,8 @@ tar -czf "$OUT" -C "$PARENT" \
   --exclude="$BASE/.tmp" \
   --exclude="$BASE/node_modules" \
   --exclude="$BASE/.env" \
+  --exclude="$BASE/.idea" \
+  --exclude="$BASE/.vscode" \
   --exclude="*.log" \
   "$BASE"
 

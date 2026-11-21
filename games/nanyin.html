@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>南音 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="泉州南音工尺谱化作节拍：跟着拍板点准每一记工尺，四句奏完，通关可领花间游戏券。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
+<style>
+  .phrase-bar{display:flex;justify-content:space-between;align-items:baseline;font-size:.72rem;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:12px}
+  .phrase-bar b{font-family:Georgia,serif;color:var(--red);font-weight:400;font-size:.92rem}
+  .track-wrap{position:relative;padding:18px 0 8px}
+  .track{position:relative;display:grid;grid-template-columns:repeat(8,1fr);gap:4px;background:rgba(36,31,26,.05);padding:6px;border:1px solid var(--line)}
+  .beat{position:relative;min-height:76px;background:var(--paper);border:1px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;transition:background .15s,border-color .15s,transform .15s}
+  .beat__no{font-size:.55rem;letter-spacing:.1em;color:var(--ink-soft);opacity:.6}
+  .beat__ch{font-size:1.35rem;letter-spacing:.04em;color:var(--ink-soft)}
+  .beat.is-hit .beat__ch{color:var(--red)}
+  .beat.is-hit{border-color:rgba(168,52,43,.28);background:var(--cream)}
+  .beat.is-lit{background:var(--red);border-color:var(--red);transform:translateY(-2px)}
+  .beat.is-lit .beat__ch,.beat.is-lit .beat__no{color:var(--cream)}
+  .beat.is-miss{animation:shake .3s}
+  .playhead{position:absolute;top:18px;bottom:8px;left:0;width:2px;background:var(--gold);box-shadow:0 0 8px rgba(201,162,74,.8);pointer-events:none;opacity:0;transition:opacity .2s}
+  .playhead.is-on{opacity:1}
+  .pad{
+    width:100%;margin-top:16px;min-height:56px;border:1px solid var(--red);
+    background:linear-gradient(180deg,#B33D33,#8E2A22);color:var(--cream);
+    font-family:var(--serif);font-size:1rem;letter-spacing:.4em;cursor:pointer;
+    transition:transform .1s,box-shadow .2s;
+  }
+  .pad:hover{box-shadow:0 8px 20px rgba(168,52,43,.24)}
+  .pad:active{transform:translateY(2px)}
+  .pad[disabled]{opacity:.45;cursor:default;box-shadow:none}
+  .start-row{display:flex;gap:8px;margin-top:12px}
+  .start-row .btn{flex:1}
+  .tip{margin-top:14px;min-height:2.6em;font-size:.74rem;line-height:1.9;letter-spacing:.08em;color:var(--ink-soft)}
+  .tip.is-warn{color:var(--red)}
+  .best{margin-top:10px;padding-top:12px;border-top:1px solid var(--line);font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:.66rem;letter-spacing:.1em;color:var(--ink-soft);margin-top:12px}
+  .legend i{display:inline-block;width:9px;height:9px;margin-right:5px;vertical-align:0;background:var(--red)}
+  .legend i.rest{background:var(--paper);border:1px solid var(--line)}
+  .win-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  @keyframes shake{0%,100%{transform:translateY(0)}30%{transform:translateY(3px)}60%{transform:translateY(-2px)}}
+  @media (max-width:430px){.beat{min-height:62px}.beat__ch{font-size:1.05rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">07 · 花间游戏</div>
+    <h1>南音<br><span class="stroke">节拍</span></h1>
+    <div class="sub">Tap the gongche score</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>用时 <b id="time">0:00</b></span>
+      <span>错拍 <b id="miss">0</b></span>
+      <span>句数 <b id="hits">0 / 4</b></span>
+    </div>
+
+    <div class="phrase-bar">
+      <span>第 <b id="phrase">1</b> 句 · 工尺谱</span>
+      <span>拍准红色字，空格留白</span>
+    </div>
+
+    <div class="track-wrap">
+      <div class="track" id="track" aria-label="南音工尺谱节拍轨"></div>
+      <div class="playhead" id="playhead"></div>
+    </div>
+
+    <button class="pad" id="pad" type="button">拍 板</button>
+
+    <div class="start-row">
+      <button class="btn" id="start" type="button">起拍</button>
+      <button class="btn ghost" id="restart" type="button">重来</button>
+    </div>
+
+    <p class="tip" id="tip">点「起拍」后，金色拍线向右走。红色工尺字经过拍线时按空格或点「拍板」。</p>
+    <p class="best" id="best">成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）</p>
+    <div class="legend"><span><i></i>应拍工尺</span><span><i class="rest"></i>留白气口</span><span>每句至少拍中六成</span></div>
+  </div>
+
+  <div class="panel board" data-board="nanyin" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 南音<small>Keep time with the gongche score</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 · 花间游戏<br>
+    成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）
+  </footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">四句奏毕</div>
+    <h2>南音一阕</h2>
+    <p id="win-text"></p>
+    <p class="win-best" id="win-best"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：拍板阿满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <div class="win-actions">
+      <button class="btn" type="button" onclick="restart()">再奏一阕</button>
+      <a class="btn ghost" href="index.html">回游戏大厅</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/leaderboard.js?v=20261121"></script>
+<script>
+(function () {
+  'use strict';
+
+  var BEATS = 8;
+  var BEAT_MS = 620;
+  var PHRASES = 4;
+  var PHRASE_NOTES = [
+    [null, '上', null, '尺', null, '工', null, '六'],
+    ['六', null, '五', '乙', null, '上', null, '尺'],
+    [null, '工', '尺', null, '六', '五', null, '上'],
+    ['上', '六', null, '尺', null, '工', '五', null]
+  ];
+
+  var trackEl = document.getElementById('track');
+  var playhead = document.getElementById('playhead');
+  var pad = document.getElementById('pad');
+  var startBtn = document.getElementById('start');
+  var restartBtn = document.getElementById('restart');
+  var timeEl = document.getElementById('time');
+  var missEl = document.getElementById('miss');
+  var hitsEl = document.getElementById('hits');
+  var phraseEl = document.getElementById('phrase');
+  var tipEl = document.getElementById('tip');
+  var bestEl = document.getElementById('best');
+  var winEl = document.getElementById('win');
+  var winText = document.getElementById('win-text');
+  var winBest = document.getElementById('win-best');
+
+  var state = {
+    phrase: 0, misses: 0, seconds: 0, timer: null,
+    running: false, started: false, won: false,
+    startAt: 0, lastBeat: -1, hits: 0, phraseMisses: 0,
+    flags: [], raf: 0, epoch: 0
+  };
+
+  function fmt(sec) {
+    var s = Math.max(0, Math.round(sec));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function notes() { return PHRASE_NOTES[state.phrase % PHRASES]; }
+
+  function renderTrack() {
+    var list = notes();
+    trackEl.innerHTML = list.map(function (ch, i) {
+      return '<div class="beat' + (ch ? ' is-hit' : '') + '" data-beat="' + i + '">' +
+        '<span class="beat__no">' + (i + 1) + '</span>' +
+        '<span class="beat__ch">' + (ch || '·') + '</span></div>';
+    }).join('');
+    state.flags = list.map(function () { return false; });
+    state.hits = 0;
+    state.phraseMisses = 0;
+    updateStats();
+  }
+
+  function updateStats() {
+    timeEl.textContent = fmt(state.seconds);
+    missEl.textContent = String(state.misses);
+    hitsEl.textContent = (state.phrase + 1) + ' / ' + PHRASES;
+    phraseEl.textContent = String(state.phrase + 1);
+  }
+
+  function cellAt(i) {
+    return trackEl.querySelector('[data-beat="' + i + '"]');
+  }
+
+  function startTimer() {
+    if (state.started || state.won) return;
+    state.started = true;
+    state.timer = setInterval(function () {
+      state.seconds++;
+      timeEl.textContent = fmt(state.seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  function failBeat(i, auto) {
+    state.misses++;
+    state.phraseMisses++;
+    missEl.textContent = String(state.misses);
+    var cell = cellAt(i);
+    if (cell) {
+      cell.classList.remove('is-miss');
+      void cell.offsetWidth;
+      cell.classList.add('is-miss');
+    }
+    if (!auto) say('这一拍落空了，等下一记工尺。', true);
+  }
+
+  function hitBeat(i) {
+    state.flags[i] = true;
+    state.hits++;
+    var cell = cellAt(i);
+    if (cell) cell.classList.add('is-lit');
+    say('拍中「' + notes()[i] + '」', false);
+  }
+
+  function tick() {
+    if (!state.running) return;
+    var step = (performance.now() - state.startAt) / BEAT_MS;
+    var beat = Math.floor(step);
+
+    if (beat !== state.lastBeat) {
+      if (state.lastBeat >= 0 && state.lastBeat < BEATS) {
+        var prev = notes()[state.lastBeat];
+        if (prev && !state.flags[state.lastBeat]) failBeat(state.lastBeat, true);
+      }
+      state.lastBeat = beat;
+    }
+
+    if (step >= BEATS) {
+      playhead.style.left = '100%';
+      finishPhrase();
+      return;
+    }
+
+    playhead.style.left = (step / BEATS * 100).toFixed(2) + '%';
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function beginPhrase() {
+    if (state.won) return;
+    renderTrack();
+    state.startAt = performance.now();
+    state.lastBeat = -1;
+    state.running = true;
+    playhead.classList.add('is-on');
+    playhead.style.left = '0%';
+    pad.disabled = false;
+    startBtn.disabled = true;
+    startBtn.textContent = '奏乐中';
+    say('起拍。红色工尺字经过拍线时拍下去。', false);
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function finishPhrase() {
+    state.running = false;
+    pad.disabled = true;
+    var list = notes().filter(Boolean).length;
+    var need = Math.ceil(list * 0.6);
+
+    if (state.hits < need) {
+      say('这一句只拍中 ' + state.hits + ' / ' + list + ' 记，气口不够，再听一遍。', true);
+      var epoch = state.epoch;
+      setTimeout(function () { if (!state.won && state.epoch === epoch) beginPhrase(); }, 1100);
+      return;
+    }
+
+    state.phrase++;
+    if (state.phrase >= PHRASES) {
+      win();
+      return;
+    }
+    updateStats();
+    say('这一句稳住了。第 ' + (state.phrase + 1) + ' 句起。', false);
+    var epoch2 = state.epoch;
+    setTimeout(function () { if (!state.won && state.epoch === epoch2) beginPhrase(); }, 900);
+  }
+
+  function tap() {
+    if (!state.running || state.won) return;
+    var step = (performance.now() - state.startAt) / BEAT_MS;
+    if (step < 0 || step >= BEATS) return;
+    var beat = Math.floor(step);
+    if (notes()[beat] && !state.flags[beat]) hitBeat(beat);
+    else failBeat(beat, false);
+  }
+
+  function say(text, warn) {
+    tipEl.textContent = text;
+    tipEl.classList.toggle('is-warn', !!warn);
+    clearTimeout(say.timer);
+    say.timer = setTimeout(function () {
+      tipEl.textContent = '红色工尺字经过金色拍线时按空格或点「拍板」。';
+      tipEl.classList.remove('is-warn');
+    }, 2200);
+  }
+
+  function win() {
+    state.won = true;
+    state.running = false;
+    stopTimer();
+    pad.disabled = true;
+    startBtn.disabled = true;
+    startBtn.textContent = '已奏完';
+    playhead.classList.remove('is-on');
+    winText.textContent = '四句工尺奏完，用时 ' + fmt(state.seconds) + '，错拍 ' + state.misses + ' 次。';
+    winBest.textContent = '成绩记入花间榜，通关可领 ¥5 券';
+    setTimeout(function () {
+      winEl.classList.add('show');
+      XBGame.finish({ game: 'nanyin', seconds: state.seconds, moves: state.misses });
+    }, 500);
+  }
+
+  window.restart = function () {
+    state.epoch++;
+    cancelAnimationFrame(state.raf);
+    stopTimer();
+    state.phrase = 0;
+    state.misses = 0;
+    state.seconds = 0;
+    state.running = false;
+    state.started = false;
+    state.won = false;
+    state.lastBeat = -1;
+    state.hits = 0;
+    state.phraseMisses = 0;
+    pad.disabled = true;
+    startBtn.disabled = false;
+    startBtn.textContent = '起拍';
+    playhead.classList.remove('is-on');
+    playhead.style.left = '0%';
+    winEl.classList.remove('show');
+    winBest.textContent = '';
+    var sf = document.getElementById('score-form');
+    var sh = document.getElementById('score-hint');
+    if (sf) sf.hidden = true;
+    if (sh) { sh.textContent = ''; sh.className = 'score-hint'; }
+    tipEl.textContent = '点「起拍」后，金色拍线向右走。红色工尺字经过拍线时按空格或点「拍板」。';
+    tipEl.classList.remove('is-warn');
+    renderTrack();
+  };
+
+  function begin() {
+    if (state.won) return;
+    startTimer();
+    beginPhrase();
+  }
+
+  startBtn.addEventListener('click', begin);
+  pad.addEventListener('click', tap);
+  restartBtn.addEventListener('click', function () { state.won = true; window.restart(); });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.key === ' ') {
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      e.preventDefault();
+      if (state.running) tap();
+      else if (!state.won && !state.started) begin();
+    }
+  });
+
+  renderTrack();
+  pad.disabled = true;
+})();
+</script>
+</body>
+</html>

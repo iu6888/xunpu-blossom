@@ -1,21 +1,30 @@
 'use strict';
 
 const { getDb } = require('../db');
+const config = require('../config');
 const ca = require('../lib/customer-auth');
 const v = require('../lib/validate');
 const { badRequest, tooMany } = require('../lib/http');
+const { dayKey } = require('../lib/security');
+const { issueGameReward } = require('../lib/coupons');
 
 /**
  * 花间游戏 · 排行榜
  *
- * 三个小游戏共用一个战绩表，排名规则一律是「用时短的在前，同样用时步数少的在前」。
+ * 九个小游戏共用一个战绩表，排名规则一律是「用时短的在前，同样用时步数少的在前」。
  * 同一个人（登录顾客按 customer_id，游客按昵称去重）只取自己的最好成绩上榜。
  */
 
 const GAMES = {
   puzzle: { label: '拼图', minSeconds: 2, maxSeconds: 3600, minMoves: 1, maxMoves: 999 },
   memory: { label: '翻卡片', minSeconds: 5, maxSeconds: 3600, minMoves: 8, maxMoves: 999 },
-  spot: { label: '找不同', minSeconds: 1, maxSeconds: 3600, minMoves: 0, maxMoves: 0 }
+  spot: { label: '找不同', minSeconds: 1, maxSeconds: 3600, minMoves: 0, maxMoves: 0 },
+  zanhua: { label: '簪花', minSeconds: 2, maxSeconds: 3600, minMoves: 0, maxMoves: 999 },
+  market: { label: '配花', minSeconds: 5, maxSeconds: 3600, minMoves: 0, maxMoves: 999 },
+  pattern: { label: '方巾纹样', minSeconds: 2, maxSeconds: 3600, minMoves: 6, maxMoves: 999 },
+  nanyin: { label: '南音', minSeconds: 3, maxSeconds: 3600, minMoves: 0, maxMoves: 999 },
+  lantern: { label: '花灯', minSeconds: 3, maxSeconds: 3600, minMoves: 1, maxMoves: 999 },
+  porcelain: { label: '德化瓷', minSeconds: 3, maxSeconds: 3600, minMoves: 0, maxMoves: 999 }
 };
 
 const GAME_KEYS = Object.keys(GAMES);
@@ -170,7 +179,8 @@ module.exports = function register(router) {
 
     const db = getDb();
     const key = playerKey(customer, name);
-    const now = new Date().toISOString();
+    const nowDate = new Date();
+    const now = nowDate.toISOString();
 
     db.run(
       `INSERT INTO game_scores
@@ -189,13 +199,27 @@ module.exports = function register(router) {
     const best = bestOf(db, game, key);
     const stats = statsOf(db, game);
 
+    // 通关即发券：同一玩家同一游戏每天一张，同一网络 / 账号每天最多 3 张
+    const reward = issueGameReward({
+      db,
+      game,
+      playerKey: key,
+      customerId: customer ? customer.id : null,
+      ip: ctx.ip || null,
+      day: dayKey(nowDate, config.timezone),
+      now: nowDate
+    });
+
     return {
       game,
       name,
       best,
       rank: best.rank,
       players: stats.players,
-      isRecord: best.seconds === seconds && best.moves === moves && best.at === now
+      isRecord: best.seconds === seconds && best.moves === moves && best.at === now,
+      coupon: reward.coupon,
+      couponNote: reward.note,
+      couponAlreadyClaimed: reward.alreadyClaimed
     };
   });
 
@@ -221,7 +245,7 @@ module.exports = function register(router) {
     };
   });
 
-  /** 首页用：三个游戏各取前三，外加总量 */
+  /** 首页用：每个游戏各取前三，外加总量 */
   router.get('/api/games/overview', async () => {
     const db = getDb();
     const games = GAME_KEYS.map((key) => ({

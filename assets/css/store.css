@@ -700,3 +700,17 @@
 
 
 
+
+
+/* ---------- 结算用券 ---------- */
+.xb-sums__row--discount span:last-child { color: var(--red, #A8342B); }
+.xb-coupon-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-top: -2px;
+}
+.xb-coupon-note {
+  font-size: .7rem; line-height: 1.7; letter-spacing: .04em;
+  color: var(--ink-mute, #8A8074);
+}
+.xb-coupon-note.is-ok { color: var(--jade, #4C6157); }
+.xb-coupon-note.is-warn { color: var(--red, #A8342B); }

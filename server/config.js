@@ -58,6 +58,15 @@ const config = {
     .map((s) => s.trim())
     .filter(Boolean),
 
+  /** 花间游戏奖励券：面额、门槛、有效期与每日发放上限 */
+  coupon: {
+    gameAmountCents: int(process.env.GAME_COUPON_FEN, 500),
+    gameMinSpendCents: int(process.env.GAME_COUPON_MIN_FEN, 5900),
+    gameTtlDays: int(process.env.GAME_COUPON_DAYS, 7),
+    gameDailyPerPlayer: int(process.env.GAME_COUPON_PLAYER_DAILY, 1),
+    gameDailyPerIp: int(process.env.GAME_COUPON_IP_DAILY, 3)
+  },
+
   /** 时区，用于订单日期分组 */
   timezone: process.env.TZ_NAME || 'Asia/Shanghai',
 

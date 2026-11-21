@@ -380,13 +380,13 @@ test('花间榜：参数与作弊下限校验', async () => {
   assert.equal(clean.json.data.name, 'b花/b友', '昵称里的尖括号会被清掉');
 });
 
-test('花间榜：概览接口给出三个游戏与总量', async () => {
+test('花间榜：概览接口给出九个游戏与总量', async () => {
   const r = await call('GET', '/api/games/overview');
   assert.equal(r.status, 200);
-  assert.equal(r.json.data.games.length, 3);
+  assert.equal(r.json.data.games.length, 9);
   assert.deepEqual(
     r.json.data.games.map((g) => g.game),
-    ['puzzle', 'memory', 'spot']
+    ['puzzle', 'memory', 'spot', 'zanhua', 'market', 'pattern', 'nanyin', 'lantern', 'porcelain']
   );
   assert.ok(r.json.data.total.plays >= 4);
 });
@@ -408,6 +408,87 @@ test('花间榜：登录顾客用账号昵称，不采纳前端传的名字', as
   const body = await r.json();
   assert.equal(r.status, 200);
   assert.equal(body.data.name, '阿满', '登录状态下用账号昵称');
+});
+
+let gameCouponCode = '';
+
+test('通关游戏发券：同人同日去重、门槛校验与试算', async () => {
+  // 清掉前面几局游戏产生的券，避免同一 IP 的每日 3 张上限干扰本用例
+  getDb().run('DELETE FROM coupons');
+
+  const first = await call('POST', '/api/games/scores', {
+    game: 'nanyin', name: '南音测试', seconds: 32, moves: 3
+  });
+  assert.equal(first.status, 200);
+  const coupon = first.json.data.coupon;
+  assert.ok(coupon, '通关后应发券');
+  assert.match(coupon.code, /^XB[A-Z2-9]{8}$/);
+  assert.equal(coupon.amountCents, 500);
+  assert.equal(coupon.minSpendCents, 5900);
+  assert.equal(coupon.status, 'active');
+  gameCouponCode = coupon.code;
+
+  const again = await call('POST', '/api/games/scores', {
+    game: 'nanyin', name: '南音测试', seconds: 28, moves: 1
+  });
+  assert.equal(again.status, 200);
+  assert.equal(again.json.data.coupon.code, gameCouponCode, '同一玩家同一游戏当天只发一张');
+  assert.equal(again.json.data.couponAlreadyClaimed, true);
+
+  const low = await call('POST', '/api/coupons/check', {
+    couponCode: gameCouponCode, itemsTotalCents: 3900
+  });
+  assert.equal(low.status, 409);
+  assert.match(low.json.error.message, /还差/);
+
+  const ok = await call('POST', '/api/coupons/check', {
+    couponCode: gameCouponCode, itemsTotalCents: 6900
+  });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.json.data.discountCents, 500);
+  assert.equal(ok.json.data.totalAfterCents, 6400);
+
+  const mine = await call('GET', '/api/coupons?codes=' + gameCouponCode);
+  assert.equal(mine.status, 200);
+  assert.equal(mine.json.data.items.length, 1);
+  assert.equal(mine.json.data.items[0].code, gameCouponCode);
+
+  const badCode = await call('POST', '/api/coupons/check', { couponCode: 'XB00000000', itemsTotalCents: 6900 });
+  assert.equal(badCode.status, 400);
+});
+
+test('下单使用游戏券：折扣落库、券核销、不能重复使用', async () => {
+  const created = await call('POST', '/api/orders', {
+    items: [{ sku: 'XB-BMK-SET', qty: 1 }],
+    customer: { name: '用券测试', phone: '13800138002', address: '福建省泉州市鲤城区 2 号' },
+    couponCode: gameCouponCode
+  });
+  assert.equal(created.status, 201);
+  assert.equal(created.json.data.itemsTotalCents, 6900);
+  assert.equal(created.json.data.discountCents, 500);
+  assert.equal(created.json.data.totalCents, 7600);
+  assert.equal(created.json.data.couponCode, gameCouponCode);
+
+  const row = getDb().get('SELECT * FROM coupons WHERE code = ?', gameCouponCode);
+  assert.equal(row.status, 'used');
+  assert.equal(row.order_id, created.json.data.id);
+
+  const reuse = await call('POST', '/api/orders', {
+    items: [{ sku: 'XB-BMK-SET', qty: 1 }],
+    customer: { name: '重复用券', phone: '13800138003', address: '福建省泉州市鲤城区 3 号' },
+    couponCode: gameCouponCode
+  });
+  assert.equal(reuse.status, 409);
+  assert.match(reuse.json.error.message, /已经使用/);
+
+  const mine = await call('GET', '/api/coupons?codes=' + gameCouponCode);
+  assert.equal(mine.json.data.items[0].status, 'used');
+
+  const admin = await call('GET', '/api/admin/coupons?q=' + gameCouponCode);
+  assert.equal(admin.status, 200);
+  assert.equal(admin.json.data.items.length, 1);
+  assert.equal(admin.json.data.items[0].status, 'used');
+  assert.equal(admin.json.data.items[0].orderId, created.json.data.id);
 });
 
 test('重复手机号与弱密码被拒', async () => {
@@ -540,6 +621,7 @@ test('清空业务数据后商品与文案保留', async () => {
   assert.equal(getDb().get('SELECT COUNT(*) AS n FROM orders').n, 0);
   assert.equal(getDb().get('SELECT COUNT(*) AS n FROM inquiries').n, 0);
   assert.equal(getDb().get('SELECT COUNT(*) AS n FROM customers').n, 0);
+  assert.equal(getDb().get('SELECT COUNT(*) AS n FROM coupons').n, 0);
 
   // 商品与站点文案不受影响
   assert.equal(getDb().get('SELECT COUNT(*) AS n FROM products').n, 6);

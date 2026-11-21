@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>花灯 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="泉州花灯 · 六盏灯依次亮起，记住顺序再一盏盏点亮。三巡点完，通关可领花间游戏券。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
+<style>
+  .lantern-stage{
+    position:relative;width:100%;aspect-ratio:1/1;max-width:420px;margin:0 auto;
+    background:radial-gradient(circle at 50% 50%,#FFFDF8 0%,#F3E7CF 58%,#E7D8BC 100%);
+    border:1px solid var(--line);overflow:hidden;
+  }
+  .lantern-stage::before{
+    content:"";position:absolute;inset:8%;border:1px dashed rgba(201,162,74,.45);border-radius:50%;
+  }
+  .lantern{
+    position:absolute;width:21%;padding:0;border:0;background:transparent;
+    transform:translate(-50%,-50%);cursor:pointer;
+    transition:transform .25s var(--ease),filter .25s;
+  }
+  .lantern svg{width:100%;height:auto;display:block;filter:drop-shadow(0 4px 8px rgba(36,31,26,.12))}
+  .lantern:hover{transform:translate(-50%,-50%) scale(1.06)}
+  .lantern.is-lit{filter:drop-shadow(0 0 14px rgba(201,162,74,.95))}
+  .lantern.is-lit .lamp{fill:#FFE7A8}
+  .lantern.is-lit .lamp-line{stroke:#A8342B}
+  .lantern.is-wrong{animation:wrong .35s}
+  .lantern[disabled]{cursor:default}
+  .center-lamp{
+    position:absolute;left:50%;top:50%;width:25%;transform:translate(-50%,-50%);
+    text-align:center;pointer-events:none;
+  }
+  .center-lamp svg{width:100%;height:auto;opacity:.85}
+  .center-lamp span{display:block;margin-top:4px;font-size:.6rem;letter-spacing:.2em;color:var(--red)}
+  .status{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin:14px 0 0;font-size:.72rem;letter-spacing:.12em;color:var(--ink-soft);
+  }
+  .status b{font-family:Georgia,serif;color:var(--red);font-weight:400}
+  .tip{margin-top:12px;min-height:2.6em;font-size:.74rem;line-height:1.9;letter-spacing:.08em;color:var(--ink-soft)}
+  .tip.is-warn{color:var(--red)}
+  .best{margin-top:10px;padding-top:12px;border-top:1px solid var(--line);font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft)}
+  .win-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  @keyframes wrong{0%,100%{transform:translate(-50%,-50%)}30%{transform:translate(calc(-50% - 5px),-50%)}70%{transform:translate(calc(-50% + 5px),-50%)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">08 · 花间游戏</div>
+    <h1>花灯<br><span class="stroke">点灯</span></h1>
+    <div class="sub">Light the lanterns in order</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>用时 <b id="time">0:00</b></span>
+      <span>点错 <b id="miss">0</b></span>
+      <span>巡次 <b id="round">1 / 3</b></span>
+    </div>
+
+    <div class="lantern-stage" id="stage" aria-label="泉州花灯点灯场">
+      <div class="center-lamp">
+        <svg viewBox="0 0 80 100" aria-hidden="true">
+          <line x1="40" y1="2" x2="40" y2="14" stroke="#8A8074" stroke-width="1.5"/>
+          <rect x="16" y="14" width="48" height="60" rx="24" fill="#A8342B" stroke="#C9A24A" stroke-width="1.4"/>
+          <path d="M16 30h48M16 58h48" stroke="#E3C882" stroke-width="1" opacity=".7"/>
+          <text x="40" y="49" text-anchor="middle" font-size="18" fill="#F3EEE4">泉</text>
+          <line x1="40" y1="74" x2="40" y2="90" stroke="#A8342B" stroke-width="1.4"/>
+          <path d="M34 90h12l-6 8z" fill="#C9A24A"/>
+        </svg>
+        <span>灯 楼</span>
+      </div>
+    </div>
+
+    <div class="status">
+      <span>本轮要记 <b id="seq-len">3</b> 盏</span>
+      <span id="phase">点「开始点灯」</span>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn" id="start" type="button" style="flex:1">开始点灯</button>
+      <button class="btn ghost" id="restart" type="button">重来</button>
+    </div>
+
+    <p class="tip" id="tip">先看灯依次亮起，再按同样的顺序点回去。三巡点完即通关。</p>
+    <p class="best" id="best">成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）</p>
+  </div>
+
+  <div class="panel board" data-board="lantern" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 花灯<small>Remember the lanterns of Quanzhou</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 · 花间游戏<br>
+    成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）
+  </footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">三巡点毕</div>
+    <h2>满城灯火</h2>
+    <p id="win-text"></p>
+    <p class="win-best" id="win-best"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：灯下小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <div class="win-actions">
+      <button class="btn" type="button" onclick="restart()">再点一巡</button>
+      <a class="btn ghost" href="index.html">回游戏大厅</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/leaderboard.js?v=20261121"></script>
+<script>
+(function () {
+  'use strict';
+
+  var LANTERNS = [
+    { name: '莲花', ch: '莲', color: '#E8B3A8', ink: '#8E3A2C' },
+    { name: '鲤鱼', ch: '鲤', color: '#C4624E', ink: '#7C231D' },
+    { name: '牡丹', ch: '牡', color: '#E3C882', ink: '#7A5C15' },
+    { name: '蝙蝠', ch: '蝠', color: '#4C6157', ink: '#F3EEE4' },
+    { name: '石榴', ch: '榴', color: '#A8342B', ink: '#F3EEE4' },
+    { name: '如意', ch: '如', color: '#FBF7EF', ink: '#A8342B' }
+  ];
+  var ROUNDS = [3, 4, 5];
+
+  var stage = document.getElementById('stage');
+  var timeEl = document.getElementById('time');
+  var missEl = document.getElementById('miss');
+  var roundEl = document.getElementById('round');
+  var seqLenEl = document.getElementById('seq-len');
+  var phaseEl = document.getElementById('phase');
+  var tipEl = document.getElementById('tip');
+  var bestEl = document.getElementById('best');
+  var startBtn = document.getElementById('start');
+  var restartBtn = document.getElementById('restart');
+  var winEl = document.getElementById('win');
+  var winText = document.getElementById('win-text');
+  var winBest = document.getElementById('win-best');
+
+  var state = {
+    round: 0, misses: 0, seconds: 0, timer: null,
+    sequence: [], step: 0, playing: false, accepting: false,
+    started: false, won: false, epoch: 0, timers: []
+  };
+
+  function fmt(sec) {
+    var s = Math.max(0, Math.round(sec));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function lanternSVG(l) {
+    return '<svg viewBox="0 0 64 92" aria-hidden="true">' +
+      '<line x1="32" y1="2" x2="32" y2="12" stroke="#8A8074" stroke-width="1.4"/>' +
+      '<rect x="10" y="12" width="44" height="56" rx="22" class="lamp" fill="' + l.color + '" stroke="#C9A24A" stroke-width="1.5"/>' +
+      '<path d="M10 28h44M10 52h44" class="lamp-line" stroke="#7C231D" stroke-width="1" opacity=".55"/>' +
+      '<text x="32" y="45" text-anchor="middle" font-size="19" fill="' + l.ink + '">' + l.ch + '</text>' +
+      '<line x1="32" y1="68" x2="32" y2="80" stroke="#A8342B" stroke-width="1.3"/>' +
+      '<path d="M27 80h10l-5 8z" fill="#C9A24A"/></svg>';
+  }
+
+  function buildStage() {
+    var old = stage.querySelectorAll('.lantern');
+    for (var i = 0; i < old.length; i++) old[i].remove();
+    for (var n = 0; n < LANTERNS.length; n++) {
+      var a = n * 60 * Math.PI / 180;
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'lantern';
+      btn.dataset.lantern = String(n);
+      btn.style.left = (50 + Math.sin(a) * 36).toFixed(2) + '%';
+      btn.style.top = (50 - Math.cos(a) * 36).toFixed(2) + '%';
+      btn.setAttribute('aria-label', LANTERNS[n].name + '灯');
+      btn.innerHTML = lanternSVG(LANTERNS[n]);
+      stage.appendChild(btn);
+    }
+  }
+
+  function lanternAt(i) {
+    return stage.querySelector('[data-lantern="' + i + '"]');
+  }
+
+  function setPhase(text) { phaseEl.textContent = text; }
+
+  function say(text, warn) {
+    tipEl.textContent = text;
+    tipEl.classList.toggle('is-warn', !!warn);
+  }
+
+  function later(fn, ms) {
+    var epoch = state.epoch;
+    var id = setTimeout(function () {
+      state.timers = state.timers.filter(function (x) { return x !== id; });
+      if (state.epoch === epoch) fn();
+    }, ms);
+    state.timers.push(id);
+    return id;
+  }
+
+  function clearTimers() {
+    state.timers.forEach(function (id) { clearTimeout(id); });
+    state.timers = [];
+  }
+
+  function startTimer() {
+    if (state.started || state.won) return;
+    state.started = true;
+    state.timer = setInterval(function () {
+      state.seconds++;
+      timeEl.textContent = fmt(state.seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  function flash(i, ms) {
+    var el = lanternAt(i);
+    if (!el) return;
+    el.classList.add('is-lit');
+    later(function () { el.classList.remove('is-lit'); }, ms || 420);
+  }
+
+  function wrong(i) {
+    var el = lanternAt(i);
+    if (el) {
+      el.classList.remove('is-wrong');
+      void el.offsetWidth;
+      el.classList.add('is-wrong');
+    }
+    state.misses++;
+    missEl.textContent = String(state.misses);
+    setPhase('顺序错了');
+    say('顺序不对，灯又暗了。再看一遍。', true);
+  }
+
+  function playSequence() {
+    if (state.won) return;
+    state.playing = true;
+    state.accepting = false;
+    state.step = 0;
+    setPhase('看灯');
+    say('看灯依次亮起，记住顺序。', false);
+    var i = 0;
+    function next() {
+      if (state.won) return;
+      if (i >= state.sequence.length) {
+        state.playing = false;
+        state.accepting = true;
+        setPhase('轮到你点灯');
+        say('按刚才的顺序点灯。', false);
+        return;
+      }
+      var idx = state.sequence[i++];
+      flash(idx, 460);
+      later(next, 620);
+    }
+    later(next, 420);
+  }
+
+  function newRound() {
+    var len = ROUNDS[state.round];
+    state.sequence = [];
+    for (var i = 0; i < len; i++) {
+      state.sequence.push(Math.floor(Math.random() * LANTERNS.length));
+    }
+    seqLenEl.textContent = String(len);
+    roundEl.textContent = (state.round + 1) + ' / ' + ROUNDS.length;
+    playSequence();
+  }
+
+  function choose(i) {
+    if (!state.accepting || state.won) return;
+    flash(i, 360);
+    if (i !== state.sequence[state.step]) {
+      wrong(i);
+      state.accepting = false;
+      later(function () { playSequence(); }, 900);
+      return;
+    }
+    state.step++;
+    if (state.step < state.sequence.length) return;
+
+    state.accepting = false;
+    state.round++;
+    if (state.round >= ROUNDS.length) {
+      win();
+      return;
+    }
+    roundEl.textContent = (state.round + 1) + ' / ' + ROUNDS.length;
+    setPhase('这一巡点亮');
+    say('这一巡点亮了，下一巡多记一盏。', false);
+    later(newRound, 800);
+  }
+
+  function win() {
+    state.won = true;
+    state.accepting = false;
+    state.playing = false;
+    stopTimer();
+    clearTimers();
+    winText.textContent = '三巡花灯全部点对，用时 ' + fmt(state.seconds) + '，点错 ' + state.misses + ' 次。';
+    winBest.textContent = '成绩记入花间榜，通关可领 ¥5 券';
+    later(function () {
+      winEl.classList.add('show');
+      XBGame.finish({ game: 'lantern', seconds: state.seconds, moves: state.misses });
+    }, 480);
+  }
+
+  function start() {
+    if (state.won) return;
+    startTimer();
+    startBtn.disabled = true;
+    startBtn.textContent = '点灯中';
+    state.started = true;
+    state.round = 0;
+    newRound();
+  }
+
+  window.restart = function () {
+    state.epoch++;
+    clearTimers();
+    stopTimer();
+    state.round = 0;
+    state.misses = 0;
+    state.seconds = 0;
+    state.sequence = [];
+    state.step = 0;
+    state.playing = false;
+    state.accepting = false;
+    state.started = false;
+    state.won = false;
+    startBtn.disabled = false;
+    startBtn.textContent = '开始点灯';
+    roundEl.textContent = '1 / 3';
+    seqLenEl.textContent = '3';
+    timeEl.textContent = '0:00';
+    missEl.textContent = '0';
+    setPhase('点「开始点灯」');
+    say('先看灯依次亮起，再按同样的顺序点回去。三巡点完即通关。', false);
+    winEl.classList.remove('show');
+    winBest.textContent = '';
+    var sf = document.getElementById('score-form');
+    var sh = document.getElementById('score-hint');
+    if (sf) sf.hidden = true;
+    if (sh) { sh.textContent = ''; sh.className = 'score-hint'; }
+    buildStage();
+  };
+
+  startBtn.addEventListener('click', start);
+  restartBtn.addEventListener('click', function () { window.restart(); });
+  stage.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-lantern]');
+    if (!b) return;
+    choose(Number(b.dataset.lantern));
+  });
+
+  buildStage();
+})();
+</script>
+</body>
+</html>

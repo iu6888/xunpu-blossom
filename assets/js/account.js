@@ -13,6 +13,8 @@
   var state = {
     customer: null,
     orders: null,
+    coupons: null,
+    couponStats: { active: 0 },
     tab: 'login',
     panel: 'orders',
     busy: false,
@@ -240,7 +242,7 @@
       .then(function (data) {
         state.customer = data.customer;
         state.tab = 'login';
-        state.panel = 'orders';
+        state.panel = location.hash === '#coupons' ? 'coupons' : 'orders';
         if (data.cart) {
           window.dispatchEvent(new CustomEvent('xb:cart', { detail: data.cart }));
         }
@@ -251,6 +253,7 @@
         };
         renderAccount();
         loadOrders();
+        if (state.panel === 'coupons') loadCoupons();
       })
       .catch(function (err) {
         notify(err.message, true);
@@ -269,6 +272,7 @@
   function renderAccount() {
     var c = state.customer;
     var stats = (state.orders && state.orders.stats) || { orders: 0, spent: 0 };
+    var couponCount = (state.couponStats && state.couponStats.active) || 0;
 
     titleEl.textContent = '你好，' + c.nickname;
     leadEl.textContent = '这里是你和这顶花园的往来记录。订单进度、收货信息与账号设置都在下面。';
@@ -290,6 +294,8 @@
           '<div class="acct-menu">' +
             '<button type="button" data-panel="orders" class="' + (state.panel === 'orders' ? 'is-active' : '') + '">' +
               '我的订单<span class="acct-menu__n">' + stats.orders + '</span></button>' +
+            '<button type="button" data-panel="coupons" class="' + (state.panel === 'coupons' ? 'is-active' : '') + '">' +
+              '我的券<span class="acct-menu__n" data-coupon-count>' + couponCount + '</span></button>' +
             '<button type="button" data-panel="profile" class="' + (state.panel === 'profile' ? 'is-active' : '') + '">个人资料</button>' +
             '<button type="button" data-panel="password" class="' + (state.panel === 'password' ? 'is-active' : '') + '">修改密码</button>' +
             '<button type="button" data-logout>退出登录</button>' +
@@ -307,6 +313,7 @@
         state.notice = null;
         renderAccount();
         if (state.panel === 'orders') loadOrders();
+        if (state.panel === 'coupons') loadCoupons();
       });
     });
 
@@ -327,6 +334,7 @@
 
     if (state.panel === 'profile') renderProfilePanel();
     else if (state.panel === 'password') renderPasswordPanel();
+    else if (state.panel === 'coupons') { renderCouponsPanel(); if (!state.coupons) loadCoupons(); }
     else renderOrdersPanel();
 
     if (state.notice) notify(state.notice.text, state.notice.error);
@@ -407,7 +415,8 @@
             items +
             '<div class="acct-order__foot">' +
               '<span>' + esc(addr || '到店自提') + '</span>' +
-              '<span>商品 ' + o.itemsTotalText + ' · 运费 ' + (o.shippingFeeCents ? o.shippingFeeText : '免') + '</span>' +
+              '<span>商品 ' + o.itemsTotalText + ' · 运费 ' + (o.shippingFeeCents ? o.shippingFeeText : '免') +
+                (o.discountCents ? ' · 券抵 ' + o.discountText : '') + '</span>' +
             '</div>' +
             (o.note ? '<div class="acct-order__foot" style="border-top:0;padding-top:0"><span>备注：' + esc(o.note) + '</span></div>' : '') +
             '<div class="acct-order__foot" style="border-top:0;padding-top:0">' +
@@ -443,6 +452,110 @@
             btn.disabled = false;
           });
       });
+    });
+  }
+
+  function loadCoupons() {
+    api('/api/coupons').then(function (data) {
+      state.coupons = data;
+      state.couponStats = { active: (data.summary && data.summary.active) || 0 };
+      var badge = root.querySelector('[data-coupon-count]');
+      if (badge) badge.textContent = String(state.couponStats.active);
+      if (state.panel === 'coupons') renderCouponsPanel();
+    }).catch(function (err) {
+      if (err.status === 401) {
+        state.customer = null;
+        renderAuth();
+        return;
+      }
+      notify(err.message, true);
+    });
+  }
+
+  function couponStatusText(c) {
+    if (c.status === 'active') return '可用';
+    if (c.status === 'used') return '已使用';
+    if (c.status === 'expired') return '已过期';
+    return '已作废';
+  }
+
+  function couponDate(iso) {
+    if (!iso) return '—';
+    var d = new Date(iso);
+    if (isNaN(d.getTime())) return '—';
+    var p = function (n) { return String(n).padStart(2, '0'); };
+    return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate());
+  }
+
+  function copyCoupon(code, btn) {
+    var done = function () {
+      var old = btn.textContent;
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = old; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(code).then(done).catch(function () { btn.textContent = '请手动复制'; });
+      return;
+    }
+    var ta = doc.createElement('textarea');
+    ta.value = code;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    doc.body.appendChild(ta);
+    ta.select();
+    try { doc.execCommand('copy'); done(); } catch (e) { btn.textContent = '请手动复制'; }
+    doc.body.removeChild(ta);
+  }
+
+  function renderCouponsPanel() {
+    var box = doc.getElementById('acct-panel');
+    if (!box) return;
+
+    if (!state.coupons) {
+      box.innerHTML = panelHead('我的券', '读取中…') + '<div class="acct-empty"><h3>正在读取券包…</h3></div>';
+      return;
+    }
+
+    var items = state.coupons.items || [];
+    var summary = state.coupons.summary || { active: 0, usableValueText: '¥0' };
+    var active = items.filter(function (c) { return c.status === 'active'; });
+    var history = items.filter(function (c) { return c.status !== 'active'; });
+
+    function card(c) {
+      var status = couponStatusText(c);
+      return '<div class="acct-coupon acct-coupon--' + esc(c.status) + '">' +
+        '<div class="acct-coupon__amount"><b>' + esc(c.amountText) + '</b><span>满 ' + esc(c.minSpendText) + '</span></div>' +
+        '<div class="acct-coupon__body">' +
+          '<div class="acct-coupon__title">' + esc(c.title) + '</div>' +
+          '<div class="acct-coupon__meta">' + (c.gameLabel ? esc(c.gameLabel) + ' · ' : '') +
+            '有效期至 ' + couponDate(c.expiresAt) + '</div>' +
+          '<div class="acct-coupon__code"><code>' + esc(c.code) + '</code>' +
+            (c.status === 'active'
+              ? '<button type="button" class="xb-btn xb-btn--sm" data-copy-coupon="' + esc(c.code) + '">复制券码</button>'
+              : '') +
+          '</div>' +
+        '</div>' +
+        '<span class="acct-coupon__status">' + esc(status) + '</span>' +
+      '</div>';
+    }
+
+    box.innerHTML = panelHead('我的券', '通关花间游戏获得 · 满 ¥59 减 ¥5') +
+      '<div class="acct-card">' +
+        '<div class="acct-coupon-summary">' +
+          '<div><span>可用券</span><b>' + summary.active + '</b></div>' +
+          '<div><span>可用面额</span><b>' + esc(summary.usableValueText || '¥0') + '</b></div>' +
+          '<a class="xb-btn xb-btn--sm" href="games/index.html">去玩游戏赢券</a>' +
+        '</div>' +
+        (active.length
+          ? '<div class="acct-coupon-list">' + active.map(card).join('') + '</div>'
+          : '<div class="acct-empty"><h3>券包还是空的</h3><p>去花间游戏通关一局，就能领一张 ¥5 券。</p><a class="xb-btn xb-btn--primary xb-btn--sm" href="games/index.html">去玩游戏</a></div>') +
+        (history.length
+          ? '<div class="acct-coupon-history"><h4>已用 / 失效</h4>' + history.map(card).join('') + '</div>'
+          : '') +
+      '</div>';
+
+    box.querySelectorAll('[data-copy-coupon]').forEach(function (btn) {
+      btn.addEventListener('click', function () { copyCoupon(btn.dataset.copyCoupon, btn); });
     });
   }
 
@@ -536,6 +649,8 @@
       .then(function (data) {
         state.customer = data.customer;
         state.orders = { items: [], total: 0, stats: data.orders };
+        state.couponStats = data.coupons || { active: 0 };
+        if (location.hash === '#coupons') state.panel = 'coupons';
         renderAccount();
         loadOrders();
       })

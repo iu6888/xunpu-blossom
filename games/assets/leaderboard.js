@@ -1,5 +1,5 @@
 /* ==========================================================================
-   花间游戏 · 排行榜前端逻辑（三个小游戏共用）
+   花间游戏 · 排行榜前端逻辑（九个小游戏共用）
    - 上报成绩
    - 渲染榜单
    - 胜利弹窗里的「留个昵称上榜」
@@ -9,7 +9,12 @@
 
   var API = '/api/games';
   var NAME_KEY = 'xb-game-name';
-  var LABELS = { puzzle: '拼图', memory: '翻卡片', spot: '找不同' };
+  var LABELS = {
+    puzzle: '拼图', memory: '翻卡片', spot: '找不同',
+    zanhua: '簪花', market: '配花', pattern: '方巾纹样',
+    nanyin: '南音', lantern: '花灯', porcelain: '德化瓷'
+  };
+  var COUPON_KEY = 'xb-coupons';
 
   var mePromise = null;
 
@@ -233,6 +238,46 @@
       });
   }
 
+  /** 把新券码记到本机，游客在账户页 / 结算时还能找回来 */
+  function rememberCoupon(c) {
+    if (!c || !c.code) return;
+    try {
+      var all = JSON.parse(localStorage.getItem(COUPON_KEY) || '[]');
+      if (!Array.isArray(all)) all = [];
+      all = all.filter(function (x) { return x && x.code !== c.code; });
+      all.unshift({
+        code: c.code,
+        title: c.title || '',
+        amountText: c.amountText || '',
+        minSpendText: c.minSpendText || '',
+        expiresAt: c.expiresAt || '',
+        game: c.game || '',
+        gameLabel: c.gameLabel || ''
+      });
+      localStorage.setItem(COUPON_KEY, JSON.stringify(all.slice(0, 20)));
+    } catch (e) { /* 隐私模式忽略 */ }
+  }
+
+  function couponHtml(d) {
+    var c = d && d.coupon;
+    if (!c) {
+      if (d && d.couponNote) return '<span class="coupon-note">' + esc(d.couponNote) + '</span>';
+      return '';
+    }
+    rememberCoupon(c);
+    var expires = c.expiresAt ? String(c.expiresAt).slice(0, 10) : '';
+    return '<span class="coupon-box">' +
+      '<span class="coupon-box__tag">' + (d.couponAlreadyClaimed ? '今日已领' : '通关奖励') + '</span>' +
+      '<b>' + esc(c.amountText) + '</b> 券 · 满 ' + esc(c.minSpendText) + ' 可用' +
+      (expires ? ' · ' + esc(expires) + ' 前有效' : '') +
+      '<br><span class="coupon-code">' + esc(c.code) + '</span>' +
+      '<button type="button" class="coupon-copy" data-copy-coupon="' + esc(c.code) + '">复制</button>' +
+      '<a class="coupon-link" href="../account.html#coupons">我的券</a>' +
+      '<a class="coupon-link" href="../collection.html">去逛逛</a>' +
+      (d.couponNote ? '<br><span class="coupon-note">' + esc(d.couponNote) + '</span>' : '') +
+      '</span>';
+  }
+
   function hints(hint, kind, d) {
     hint.className = 'score-hint';
     if (kind === 'ok') {
@@ -245,7 +290,7 @@
       if (record && d.rank === 1) text = '新纪录！你暂时是第 <b>1</b> 名';
       else if (record) text += '（个人新纪录）';
       text += '<br>全站已有 ' + d.players + ' 位玩家留下成绩';
-      hint.innerHTML = text;
+      hint.innerHTML = text + couponHtml(d);
       return;
     }
 
@@ -254,6 +299,43 @@
     if (d && d.code === 'RATE_LIMITED') msg = '提交太频繁了，歇一会儿再来';
     hint.textContent = msg;
   }
+
+  /* 复制券码：优先 Clipboard API，失败时落回选中文本 */
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text);
+    }
+    return new Promise(function (resolve, reject) {
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly', '');
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        resolve();
+      } catch (e) {
+        reject(e);
+      } finally {
+        document.body.removeChild(ta);
+      }
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('[data-copy-coupon]');
+    if (!btn) return;
+    var code = btn.getAttribute('data-copy-coupon');
+    copyText(code).then(function () {
+      var old = btn.textContent;
+      btn.textContent = '已复制';
+      setTimeout(function () { btn.textContent = old; }, 1600);
+    }).catch(function () {
+      btn.textContent = '请手动复制';
+    });
+  });
 
   function refreshBoards(game) {
     var nodes = document.querySelectorAll('[data-board]');

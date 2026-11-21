@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>簪花 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="按花单把素馨、茉莉、含笑、玉兰、山茶与玫瑰簪上发髻，复原蟳埔女的头顶花园。成绩记入花间榜，通关可领优惠券。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
+<style>
+  .order{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .chip{
+    display:flex;align-items:center;gap:7px;min-width:0;
+    background:var(--paper);border:1px solid var(--line);padding:7px 9px;
+    font-size:.74rem;letter-spacing:.06em;transition:opacity .3s,border-color .3s;
+  }
+  .chip svg{width:24px;height:24px;flex:none}
+  .chip__no{font-family:Georgia,serif;font-size:.66rem;color:var(--red);flex:none}
+  .chip__name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:color .3s}
+  .chip.is-done{opacity:.45;border-style:dashed}
+  .chip.is-done .chip__name{text-decoration:line-through}
+
+  .stage{
+    position:relative;width:100%;aspect-ratio:6/5;overflow:hidden;
+    background:radial-gradient(ellipse at 50% 34%,#FFFDF8 0%,#F6F0E3 62%,#EFE6D4 100%);
+    border:1px solid var(--line);
+  }
+  .stage__art{position:absolute;inset:0;width:100%;height:100%}
+
+  .slot{
+    position:absolute;width:18.5%;aspect-ratio:1;padding:0;
+    transform:translate(-50%,-50%);border-radius:50%;cursor:pointer;
+    border:1px dashed rgba(201,162,74,.7);background:rgba(251,247,239,.5);
+    display:flex;align-items:center;justify-content:center;
+    transition:border-color .25s,background .25s,box-shadow .25s;
+  }
+  .slot svg{width:84%;height:84%;opacity:.26;transition:opacity .3s,transform .4s var(--ease)}
+  .slot:hover{border-color:var(--red);background:#FFFDF8;box-shadow:0 4px 14px rgba(168,52,43,.1)}
+  .slot.filled{border-color:transparent;background:transparent;cursor:default;box-shadow:none}
+  .slot.filled svg{opacity:1;animation:pop .45s var(--ease)}
+  .slot.bad{border-color:var(--red);background:rgba(168,52,43,.08);animation:shake .4s}
+
+  .tray{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
+  .flower{
+    display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px 6px;
+    background:var(--paper);border:1px solid var(--line);color:var(--ink);
+    font-family:var(--serif);font-size:.7rem;letter-spacing:.1em;cursor:pointer;
+    transition:transform .2s var(--ease),border-color .2s,box-shadow .2s,opacity .3s;
+  }
+  .flower svg{width:42px;height:42px}
+  .flower:hover{transform:translateY(-2px);border-color:var(--gold)}
+  .flower[aria-pressed="true"]{border-color:var(--red);background:#fff;transform:translateY(-3px);box-shadow:0 8px 18px rgba(168,52,43,.13)}
+  .flower[disabled]{opacity:.2;cursor:default;transform:none;box-shadow:none}
+
+  .tip{
+    margin-top:13px;min-height:2.6em;font-size:.74rem;line-height:1.9;
+    letter-spacing:.08em;color:var(--ink-soft);transition:color .2s;
+  }
+  .tip.is-warn{color:var(--red)}
+  .best{
+    margin-top:10px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft);
+  }
+  .best b{color:var(--red);font-family:Georgia,serif;font-weight:400}
+
+  .win-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .win-best{margin-top:-8px!important;font-size:.72rem!important;letter-spacing:.14em;color:var(--red)!important}
+
+  @keyframes shake{
+    0%,100%{transform:translate(-50%,-50%)}
+    20%{transform:translate(calc(-50% - 5px),-50%)}
+    45%{transform:translate(calc(-50% + 5px),-50%)}
+    70%{transform:translate(calc(-50% - 3px),-50%)}
+  }
+  @keyframes pop{
+    0%{transform:scale(.4) rotate(-24deg);opacity:0}
+    70%{transform:scale(1.08) rotate(3deg);opacity:1}
+    100%{transform:scale(1) rotate(0)}
+  }
+
+  @media (max-width:520px){
+    .order{grid-template-columns:repeat(2,1fr)}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">04 · 花间游戏</div>
+    <h1>簪花<br><span class="stroke">围</span></h1>
+    <div class="sub">Pin the garden onto the bun</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>用时 <b id="time">0:00</b></span>
+      <span>放错 <b id="miss">0</b></span>
+      <button class="btn ghost" id="restart" type="button" style="padding:7px 18px">重开</button>
+    </div>
+
+    <div class="order" id="order" aria-label="花单"></div>
+
+    <div class="stage" id="stage">
+      <svg class="stage__art" viewBox="0 0 360 300" aria-hidden="true">
+        <defs>
+          <radialGradient id="hair" cx="42%" cy="28%" r="80%">
+            <stop offset="0" stop-color="#3D332C"/>
+            <stop offset=".55" stop-color="#2A221D"/>
+            <stop offset="1" stop-color="#1D1714"/>
+          </radialGradient>
+          <linearGradient id="pin" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#E3C882"/>
+            <stop offset="1" stop-color="#A8842F"/>
+          </linearGradient>
+        </defs>
+
+        <path d="M180 228c-40 0-72 26-82 72h164c-10-46-42-72-82-72z" fill="#2A221D" opacity=".45"/>
+
+        <ellipse cx="180" cy="158" rx="78" ry="86" fill="url(#hair)"/>
+        <path d="M108 140c20 20 44 30 72 30s52-10 72-30" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="1.2"/>
+        <path d="M112 168c20 20 42 30 68 30s48-10 68-30" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="1.2"/>
+        <path d="M120 194c18 15 37 22 60 22s42-7 60-22" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="1.2"/>
+
+        <ellipse cx="180" cy="88" rx="43" ry="32" fill="url(#hair)" stroke="rgba(0,0,0,.35)" stroke-width="1"/>
+        <path d="M150 84c12-10 48-10 60 0" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="1.2"/>
+
+        <g transform="rotate(-8 180 92)">
+          <rect x="156" y="77" width="48" height="9" rx="3" fill="#A8342B"/>
+          <path d="M160 86v8M167 86v8M174 86v8M181 86v8M188 86v8M195 86v8" stroke="#A8342B" stroke-width="2"/>
+        </g>
+
+        <line x1="208" y1="102" x2="252" y2="70" stroke="url(#pin)" stroke-width="2.4"/>
+        <circle cx="253" cy="69" r="4.5" fill="#E3C882"/>
+        <circle cx="253" cy="69" r="1.8" fill="#A8342B"/>
+
+        <circle cx="180" cy="150" r="102" fill="none" stroke="rgba(201,162,74,.5)" stroke-width="1.2" stroke-dasharray="2 5"/>
+      </svg>
+    </div>
+
+    <div class="tray" id="tray"></div>
+
+    <p class="tip" id="tip">先点一朵花，再点发髻上的空位。素馨与茉莉都是白色，数一数花瓣。</p>
+    <p class="best" id="best"></p>
+  </div>
+
+  <div class="panel board" data-board="zanhua" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 簪花<small>Pin the garden onto the bun</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 · 花间游戏<br>
+    成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）
+  </footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">花围已成</div>
+    <h2>头顶花园</h2>
+    <p id="win-text"></p>
+    <p class="win-best" id="win-best"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：簪花小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <div class="win-actions">
+      <button class="btn" type="button" onclick="restart()">再插一顶</button>
+      <a class="btn ghost" href="index.html">回游戏大厅</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/leaderboard.js?v=20261121"></script>
+<script>
+(function () {
+  'use strict';
+
+  var FLOWERS = [
+    { key: 'suxin', name: '素馨', petals: 5, color: '#FBF7EF', edge: '#D9CDB4', center: '#E3C882' },
+    { key: 'moli', name: '茉莉', petals: 7, color: '#FFFDF8', edge: '#CFC3AA', center: '#C9A24A' },
+    { key: 'hanxiao', name: '含笑', petals: 6, color: '#E9C97F', edge: '#C9A24A', center: '#A8342B' },
+    { key: 'yulan', name: '玉兰', petals: 6, color: '#E8B3A8', edge: '#C48174', center: '#F3EEE4' },
+    { key: 'shancha', name: '山茶', petals: 8, color: '#A8342B', edge: '#7C231D', center: '#E3C882' },
+    { key: 'rose', name: '玫瑰', petals: 9, color: '#C4624E', edge: '#8E3A2C', center: '#7C231D' }
+  ];
+
+  var ANGLES = [0, 60, 120, 180, 240, 300];
+  var DEFAULT_TIP = '先点一朵花，再点发髻上的空位。素馨与茉莉都是白色，数一数花瓣。';
+
+  var stage = document.getElementById('stage');
+  var trayEl = document.getElementById('tray');
+  var orderEl = document.getElementById('order');
+  var timeEl = document.getElementById('time');
+  var missEl = document.getElementById('miss');
+  var tipEl = document.getElementById('tip');
+  var bestEl = document.getElementById('best');
+  var winEl = document.getElementById('win');
+  var winText = document.getElementById('win-text');
+  var winBest = document.getElementById('win-best');
+
+  var state = {
+    assign: [], done: [], tray: [], selected: -1,
+    misses: 0, seconds: 0, timer: null, started: false, won: false
+  };
+
+  var tipTimer = null;
+
+  /* ---------------- 花朵图形 ---------------- */
+
+  function bloomSVG(f) {
+    var r = 50;
+    var s = '';
+    for (var i = 0; i < f.petals; i++) {
+      var a = 360 / f.petals * i;
+      s += '<ellipse cx="0" cy="' + (-r * 0.5).toFixed(2) + '" rx="' + (r * 0.33).toFixed(2) +
+        '" ry="' + (r * 0.56).toFixed(2) + '" transform="rotate(' + a.toFixed(1) + ')" fill="' +
+        f.color + '" stroke="' + f.edge + '" stroke-width="2"/>';
+    }
+    s += '<circle r="' + (r * 0.26).toFixed(2) + '" fill="' + f.center + '"/>';
+    return '<svg viewBox="-60 -60 120 120" aria-hidden="true">' + s + '</svg>';
+  }
+
+  function byKey(key) {
+    for (var i = 0; i < FLOWERS.length; i++) if (FLOWERS[i].key === key) return FLOWERS[i];
+    return FLOWERS[0];
+  }
+
+  function shuffle(list) {
+    var arr = list.slice();
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  function fmt(sec) {
+    var s = Math.max(0, Math.round(sec));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+  function updateBestLine() {
+    bestEl.textContent = '成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）';
+  }
+
+  /* ---------------- 渲染 ---------------- */
+
+  function slotPos(i) {
+    var a = ANGLES[i] * Math.PI / 180;
+    return { x: 50 + Math.sin(a) * 28.33, y: 50 - Math.cos(a) * 34 };
+  }
+
+  function renderOrder() {
+    orderEl.innerHTML = state.assign.map(function (key, i) {
+      var f = byKey(key);
+      var done = state.done.indexOf(i) !== -1;
+      return '<div class="chip' + (done ? ' is-done' : '') + '">' +
+        '<span class="chip__no">0' + (i + 1) + '</span>' + bloomSVG(f) +
+        '<span class="chip__name">' + f.name + '</span></div>';
+    }).join('');
+  }
+
+  function renderSlots() {
+    stage.querySelectorAll('.slot').forEach(function (el) { el.remove(); });
+    state.assign.forEach(function (key, i) {
+      var f = byKey(key);
+      var pos = slotPos(i);
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'slot';
+      btn.dataset.slot = String(i);
+      btn.style.left = pos.x.toFixed(2) + '%';
+      btn.style.top = pos.y.toFixed(2) + '%';
+      btn.setAttribute('aria-label', '第 ' + (i + 1) + ' 个空位，待簪' + f.name);
+      btn.innerHTML = bloomSVG(f);
+      stage.appendChild(btn);
+    });
+  }
+
+  function renderTray() {
+    trayEl.innerHTML = state.tray.map(function (key, i) {
+      var f = byKey(key);
+      return '<button class="flower" type="button" data-tray="' + i + '" aria-pressed="false">' +
+        bloomSVG(f) + '<span>' + f.name + '</span></button>';
+    }).join('');
+  }
+
+  function markTray() {
+    trayEl.querySelectorAll('[data-tray]').forEach(function (btn) {
+      btn.setAttribute('aria-pressed', String(Number(btn.dataset.tray) === state.selected));
+    });
+  }
+
+  function say(text, warn) {
+    tipEl.textContent = text;
+    tipEl.classList.toggle('is-warn', !!warn);
+    clearTimeout(tipTimer);
+    tipTimer = setTimeout(function () {
+      tipEl.textContent = DEFAULT_TIP;
+      tipEl.classList.remove('is-warn');
+    }, 2000);
+  }
+
+  /* ---------------- 计时 ---------------- */
+
+  function startTimer() {
+    if (state.started || state.won) return;
+    state.started = true;
+    state.timer = setInterval(function () {
+      state.seconds++;
+      timeEl.textContent = fmt(state.seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  /* ---------------- 玩法 ---------------- */
+
+  function place(slotBtn) {
+    if (state.won) return;
+    var idx = Number(slotBtn.dataset.slot);
+    if (state.done.indexOf(idx) !== -1) { say('这一格已经簪好花了'); return; }
+    if (state.selected === -1) { say('先点下面的一朵花，再点空位', true); return; }
+
+    startTimer();
+    var f = byKey(state.tray[state.selected]);
+    var need = byKey(state.assign[idx]);
+
+    if (f.key !== need.key) {
+      state.misses++;
+      missEl.textContent = String(state.misses);
+      slotBtn.classList.remove('bad');
+      void slotBtn.offsetWidth;
+      slotBtn.classList.add('bad');
+      say('这一格要簪' + need.name + '，你拿的是' + f.name, true);
+      return;
+    }
+
+    state.done.push(idx);
+    slotBtn.classList.remove('bad');
+    slotBtn.classList.add('filled');
+    slotBtn.innerHTML = bloomSVG(need);
+    slotBtn.disabled = true;
+    slotBtn.setAttribute('aria-label', '第 ' + (idx + 1) + ' 个空位，' + need.name + ' 已簪好');
+
+    var usedBtn = trayEl.querySelector('[data-tray="' + state.selected + '"]');
+    if (usedBtn) { usedBtn.disabled = true; usedBtn.setAttribute('aria-pressed', 'false'); }
+    state.selected = -1;
+    markTray();
+    renderOrder();
+    say(need.name + '归位 · 还差 ' + (6 - state.done.length) + ' 朵', false);
+
+    if (state.done.length === 6) win();
+  }
+
+  function win() {
+    state.won = true;
+    stopTimer();
+    winText.textContent = '用时 ' + fmt(state.seconds) + '，放错 ' + state.misses + ' 次，六朵花各就各位。';
+    winBest.textContent = '成绩记入花间榜，通关可领 ¥5 券';
+    updateBestLine();
+    setTimeout(function () {
+      winEl.classList.add('show');
+      XBGame.finish({ game: 'zanhua', seconds: state.seconds, moves: state.misses });
+    }, 600);
+  }
+
+  function build() {
+    stopTimer();
+    state.assign = shuffle(FLOWERS).slice(0, 6).map(function (f) { return f.key; });
+    var extras = shuffle(FLOWERS).slice(0, 2).map(function (f) { return f.key; });
+    state.tray = shuffle(state.assign.concat(extras));
+    state.done = [];
+    state.selected = -1;
+    state.misses = 0;
+    state.seconds = 0;
+    state.started = false;
+    state.won = false;
+    winEl.classList.remove('show');
+    var sf = document.getElementById('score-form');
+    var sh = document.getElementById('score-hint');
+    if (sf) sf.hidden = true;
+    if (sh) { sh.textContent = ''; sh.className = 'score-hint'; }
+    winBest.textContent = '';
+    missEl.textContent = '0';
+    timeEl.textContent = '0:00';
+    tipEl.textContent = DEFAULT_TIP;
+    tipEl.classList.remove('is-warn');
+    renderOrder();
+    renderSlots();
+    renderTray();
+    updateBestLine();
+  }
+
+  window.restart = build;
+
+  /* ---------------- 事件 ---------------- */
+
+  trayEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-tray]');
+    if (!btn || btn.disabled || state.won) return;
+    var i = Number(btn.dataset.tray);
+    if (state.selected === i) {
+      state.selected = -1;
+      markTray();
+      return;
+    }
+    state.selected = i;
+    markTray();
+    startTimer();
+    say('已选好' + byKey(state.tray[i]).name + '，点发髻上的空位');
+  });
+
+  stage.addEventListener('click', function (e) {
+    var btn = e.target.closest('.slot');
+    if (!btn || state.won) return;
+    place(btn);
+  });
+
+  document.getElementById('restart').addEventListener('click', build);
+
+  build();
+})();
+</script>
+</body>
+</html>

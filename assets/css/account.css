@@ -624,3 +624,52 @@
 
 
 
+
+
+/* ---------- 我的券 ---------- */
+.acct-coupon-summary {
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+  padding-bottom: 16px; margin-bottom: 6px; border-bottom: 1px solid var(--line, rgba(36,31,26,.12));
+}
+.acct-coupon-summary > div { display: flex; flex-direction: column; gap: 2px; }
+.acct-coupon-summary span { font-size: .7rem; letter-spacing: .1em; color: var(--ink-mute, #8A8074); }
+.acct-coupon-summary b { font-family: Georgia, serif; font-weight: 400; font-size: 1.25rem; color: var(--red, #A8342B); }
+.acct-coupon-summary .xb-btn { margin-left: auto; }
+
+.acct-coupon-list { display: grid; gap: 10px; margin-top: 14px; }
+.acct-coupon {
+  display: flex; align-items: stretch; gap: 14px;
+  border: 1px dashed rgba(168,52,43,.4);
+  background: rgba(201,162,74,.06);
+  padding: 12px 14px; position: relative;
+}
+.acct-coupon--used, .acct-coupon--expired, .acct-coupon--void { opacity: .58; border-style: solid; }
+.acct-coupon__amount {
+  flex: none; width: 72px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-right: 1px dashed rgba(168,52,43,.3); padding-right: 12px;
+}
+.acct-coupon__amount b { font-family: Georgia, serif; font-weight: 400; font-size: 1.5rem; color: var(--red, #A8342B); }
+.acct-coupon__amount span { font-size: .64rem; letter-spacing: .08em; color: var(--ink-mute, #8A8074); }
+.acct-coupon__body { flex: 1; min-width: 0; }
+.acct-coupon__title { font-size: .84rem; letter-spacing: .06em; margin-bottom: 4px; }
+.acct-coupon__meta { font-size: .68rem; letter-spacing: .08em; color: var(--ink-mute, #8A8074); }
+.acct-coupon__code { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 7px; }
+.acct-coupon__code code {
+  font-family: Georgia, serif; letter-spacing: .16em; font-size: .82rem;
+  border: 1px solid var(--line, rgba(36,31,26,.12)); padding: 2px 7px; background: #fff;
+}
+.acct-coupon__status {
+  position: absolute; right: 12px; top: 10px;
+  font-size: .62rem; letter-spacing: .12em; color: var(--red, #A8342B);
+}
+.acct-coupon-history { margin-top: 20px; }
+.acct-coupon-history h4 {
+  font-size: .72rem; font-weight: 400; letter-spacing: .16em;
+  color: var(--ink-mute, #8A8074); margin-bottom: 10px;
+}
+.acct-coupon-history .acct-coupon { margin-bottom: 8px; }
+@media (max-width: 520px) {
+  .acct-coupon-summary { gap: 14px; }
+  .acct-coupon-summary .xb-btn { margin-left: 0; width: 100%; }
+  .acct-coupon__amount { width: 60px; }
+}

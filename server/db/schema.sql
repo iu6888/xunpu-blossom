@@ -139,6 +139,8 @@ CREATE TABLE IF NOT EXISTS orders (
   channel       TEXT    NOT NULL DEFAULT 'web',
   fulfillment   TEXT    NOT NULL DEFAULT 'express',
   idem_key      TEXT,
+  coupon_code   TEXT,
+  discount      INTEGER NOT NULL DEFAULT 0,
   items_total   INTEGER NOT NULL,
   shipping_fee  INTEGER NOT NULL DEFAULT 0,
   total         INTEGER NOT NULL,
@@ -208,6 +210,32 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_events_day ON events(day, type);
+
+/* ---------- 优惠券（花间游戏奖励 / 后续可扩展活动券） ---------- */
+CREATE TABLE IF NOT EXISTS coupons (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  code        TEXT    NOT NULL UNIQUE,
+  title       TEXT    NOT NULL DEFAULT '花间游戏奖励券',
+  amount      INTEGER NOT NULL,              -- 面额，分
+  min_spend   INTEGER NOT NULL DEFAULT 0,    -- 使用门槛，分
+  status      TEXT    NOT NULL DEFAULT 'active', -- active / used / void
+  source      TEXT    NOT NULL DEFAULT 'game',
+  game        TEXT,
+  player_key  TEXT,
+  customer_id INTEGER,
+  ip          TEXT,
+  day         TEXT    NOT NULL,
+  expires_at  TEXT    NOT NULL,
+  created_at  TEXT    NOT NULL,
+  used_at     TEXT,
+  order_id    INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_coupons_status ON coupons(status, expires_at);
+CREATE INDEX IF NOT EXISTS idx_coupons_customer ON coupons(customer_id, id);
+CREATE INDEX IF NOT EXISTS idx_coupons_day ON coupons(day, source);
+-- 同一玩家、同一游戏、同一天只发一张；游客按昵称、登录顾客按 customer_id 去重
+CREATE UNIQUE INDEX IF NOT EXISTS idx_coupons_game_day
+  ON coupons(game, player_key, day) WHERE source = 'game' AND player_key IS NOT NULL;
 
 /* ---------- 花间游戏 · 战绩 ---------- */
 CREATE TABLE IF NOT EXISTS game_scores (

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纹样 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="半城红真丝方巾被切乱旋转，点一块转 90°，把花冠俯视纹样转回原样。成绩记入花间榜，通关可领优惠券。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
+<style>
+  .scarf{display:flex;justify-content:center;margin-top:4px}
+  .scarf__frame{
+    flex:none;width:min(100%,382px);padding:10px;
+    background:linear-gradient(135deg,#8E2A22,#5E1A15 58%,#7C231D);
+    border:1px solid rgba(201,162,74,.55);
+    box-shadow:0 16px 34px rgba(36,31,26,.16);
+  }
+  .grid{
+    width:100%;aspect-ratio:1;
+    display:grid;grid-template-columns:repeat(3,1fr);gap:2px;
+    background:rgba(201,162,74,.45);
+  }
+  .tile{
+    position:relative;padding:0;border:0;width:100%;aspect-ratio:1;
+    background-color:transparent;background-repeat:no-repeat;background-size:300% 300%;
+    cursor:pointer;transform-origin:50% 50%;
+    transition:transform .3s var(--ease),filter .2s;
+  }
+  .tile:hover{filter:brightness(1.1)}
+  .tile:focus-visible{outline:2px solid var(--gold-l);outline-offset:-3px}
+
+  .ref{
+    display:flex;align-items:center;gap:13px;margin-top:18px;padding-top:15px;
+    border-top:1px solid var(--line);
+  }
+  .ref img{
+    width:58px;height:58px;flex:none;background:#7C231D;
+    border:1px solid rgba(201,162,74,.6);
+  }
+  .ref b{display:block;font-size:.76rem;letter-spacing:.18em;color:var(--red);font-weight:400;margin-bottom:4px}
+  .ref span{font-size:.7rem;letter-spacing:.08em;color:var(--ink-soft);line-height:1.8}
+
+  .tip{
+    margin-top:13px;min-height:2.4em;font-size:.74rem;line-height:1.9;
+    letter-spacing:.08em;color:var(--ink-soft);
+  }
+  .best{
+    margin-top:10px;padding-top:12px;border-top:1px solid var(--line);
+    font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft);
+  }
+  .best b{color:var(--red);font-family:Georgia,serif;font-weight:400}
+
+  .win-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  .win-best{margin-top:-8px!important;font-size:.72rem!important;letter-spacing:.14em;color:var(--red)!important}
+
+  @keyframes pop{
+    0%{transform:scale(.7);opacity:.4}
+    100%{transform:scale(1);opacity:1}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">06 · 花间游戏</div>
+    <h1>方巾<br><span class="stroke">纹样</span></h1>
+    <div class="sub">Turn the silk back into a garden</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>用时 <b id="time">0:00</b></span>
+      <span>旋转 <b id="moves">0</b></span>
+      <span>还剩 <b id="left">9</b> 块</span>
+      <button class="btn ghost" id="restart" type="button" style="padding:7px 18px">重开</button>
+    </div>
+
+    <div class="scarf">
+      <div class="scarf__frame">
+        <div class="grid" id="grid" aria-label="被切乱的方巾纹样"></div>
+      </div>
+    </div>
+
+    <div class="ref">
+      <img id="ref-img" alt="方巾纹样原本的缩略图">
+      <div>
+        <b>纹样原本</b>
+        <span>点击任意一块旋转 90°，把九块碎片转回这个方向。块与块之间要对得上花纹与金线。</span>
+      </div>
+    </div>
+
+    <p class="tip" id="tip">先看原纹样，再找转错的花片。同一块可以连转多次。</p>
+    <p class="best" id="best"></p>
+  </div>
+
+  <div class="panel board" data-board="pattern" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 方巾纹样<small>Turn the silk back into a garden</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 · 花间游戏<br>
+    成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）
+  </footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">纹样复原</div>
+    <h2>半城红</h2>
+    <p id="win-text"></p>
+    <p class="win-best" id="win-best"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：簪花小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <div class="win-actions">
+      <button class="btn" type="button" onclick="restart()">再转一条</button>
+      <a class="btn ghost" href="index.html">回游戏大厅</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/leaderboard.js?v=20261121"></script>
+<script src="assets/flower.js?v=20261121"></script>
+<script>
+(function () {
+  'use strict';
+  var SIZE = 3;
+  var COUNT = SIZE * SIZE;
+
+  var gridEl = document.getElementById('grid');
+  var timeEl = document.getElementById('time');
+  var movesEl = document.getElementById('moves');
+  var leftEl = document.getElementById('left');
+  var bestEl = document.getElementById('best');
+  var winEl = document.getElementById('win');
+  var winText = document.getElementById('win-text');
+  var winBest = document.getElementById('win-best');
+  var tipEl = document.getElementById('tip');
+  var refImg = document.getElementById('ref-img');
+
+  var state = {
+    rotations: [], seconds: 0, moves: 0,
+    timer: null, started: false, won: false
+  };
+
+  /* ---------------- 纹样 ---------------- */
+
+  function scarfSVG() {
+    var s = '<rect width="300" height="300" fill="#7C231D"/>';
+    s += '<polygon points="0,0 300,0 0,300" fill="rgba(255,255,255,.035)"/>';
+    s += '<polygon points="300,0 300,300 0,300" fill="rgba(0,0,0,.07)"/>';
+    s += '<rect x="9" y="9" width="282" height="282" fill="none" stroke="#C9A24A" stroke-width="1.6"/>';
+    s += '<rect x="17" y="17" width="266" height="266" fill="none" stroke="rgba(227,200,130,.4)" stroke-width="1"/>';
+    s += '<circle cx="150" cy="150" r="120" fill="none" stroke="rgba(227,200,130,.5)" stroke-width="1.2"/>';
+    s += '<circle cx="150" cy="150" r="72" fill="none" stroke="rgba(227,200,130,.35)" stroke-width="1"/>';
+
+    for (var i = 0; i < 8; i++) {
+      var a = i * Math.PI / 4;
+      s += flowerSVG(
+        150 + Math.sin(a) * 106,
+        150 - Math.cos(a) * 106,
+        24,
+        i % 2 ? '#E3C882' : '#F3EEE4',
+        '#A8342B',
+        i * 12
+      );
+    }
+
+    for (var j = 0; j < 4; j++) {
+      var b = (j * 90 + 45) * Math.PI / 180;
+      s += flowerSVG(
+        150 + Math.sin(b) * 42,
+        150 - Math.cos(b) * 42,
+        17,
+        '#E3C882',
+        '#7C231D',
+        j * 30
+      );
+    }
+
+    s += '<circle cx="150" cy="150" r="28" fill="#A8342B" stroke="#E3C882" stroke-width="1.6"/>';
+    s += flowerSVG(150, 150, 18, '#E3C882', '#A8342B', 18);
+
+    for (var k = 0; k < 4; k++) {
+      var c = (45 + k * 90) * Math.PI / 180;
+      s += leafSVG(150 + Math.sin(c) * 138, 150 - Math.cos(c) * 138, 26, 45 + k * 90 + 180, '#8E9C7C');
+    }
+
+    s += '<g transform="translate(238,238)">' +
+      '<rect width="34" height="34" fill="none" stroke="#E3C882" stroke-width="1.4"/>' +
+      '<text x="17" y="24" text-anchor="middle" font-size="19" fill="#E3C882">花</text></g>';
+
+    return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300">' + s + '</svg>';
+  }
+
+  /* ---------------- 工具 ---------------- */
+
+  function fmt(sec) {
+    var s = Math.max(0, Math.round(sec));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function updateBestLine() {
+    bestEl.textContent = '成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）';
+  }
+
+  function leftCount() {
+    var n = 0;
+    for (var i = 0; i < state.rotations.length; i++) {
+      if (((state.rotations[i] % 360) + 360) % 360 !== 0) n++;
+    }
+    return n;
+  }
+
+  /* ---------------- 棋盘 ---------------- */
+
+  function build() {
+    stopTimer();
+    state.won = false;
+    state.started = false;
+    state.seconds = 0;
+    state.moves = 0;
+
+    var uri = svgToDataURI(scarfSVG());
+    refImg.src = uri;
+
+    do {
+      state.rotations = [];
+      for (var i = 0; i < COUNT; i++) {
+        state.rotations.push(Math.floor(Math.random() * 4) * 90);
+      }
+    } while (leftCount() < 6);
+
+    gridEl.innerHTML = '';
+    for (var n = 0; n < COUNT; n++) {
+      var row = Math.floor(n / SIZE);
+      var col = n % SIZE;
+      var tile = document.createElement('button');
+      tile.type = 'button';
+      tile.className = 'tile';
+      tile.dataset.tile = String(n);
+      tile.style.backgroundImage = 'url("' + uri + '")';
+      tile.style.backgroundPosition = (col * 50) + '% ' + (row * 50) + '%';
+      tile.style.transform = 'rotate(' + state.rotations[n] + 'deg)';
+      tile.setAttribute('aria-label', '第 ' + (n + 1) + ' 块花片');
+      gridEl.appendChild(tile);
+    }
+
+    winEl.classList.remove('show');
+    var sf = document.getElementById('score-form');
+    var sh = document.getElementById('score-hint');
+    if (sf) sf.hidden = true;
+    if (sh) { sh.textContent = ''; sh.className = 'score-hint'; }
+    winBest.textContent = '';
+    timeEl.textContent = '0:00';
+    movesEl.textContent = '0';
+    leftEl.textContent = String(leftCount());
+    tipEl.textContent = '先看原纹样，再找转错的花片。同一块可以连转多次。';
+    updateBestLine();
+  }
+
+  function rotate(tile) {
+    if (state.won) return;
+    startTimer();
+
+    var i = Number(tile.dataset.tile);
+    state.rotations[i] += 90;
+    state.moves++;
+    tile.style.transform = 'rotate(' + state.rotations[i] + 'deg)';
+
+    movesEl.textContent = String(state.moves);
+    var left = leftCount();
+    leftEl.textContent = String(left);
+
+    if (left === 0) win();
+  }
+
+  function win() {
+    state.won = true;
+    stopTimer();
+    winText.textContent = '九块花片各归其位，用时 ' + fmt(state.seconds) + '，旋转 ' + state.moves + ' 次。';
+    winBest.textContent = '成绩记入花间榜，通关可领 ¥5 券';
+    updateBestLine();
+    setTimeout(function () {
+      winEl.classList.add('show');
+      XBGame.finish({ game: 'pattern', seconds: state.seconds, moves: state.moves });
+    }, 520);
+  }
+
+  /* ---------------- 计时 ---------------- */
+
+  function startTimer() {
+    if (state.started || state.won) return;
+    state.started = true;
+    state.timer = setInterval(function () {
+      state.seconds++;
+      timeEl.textContent = fmt(state.seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  window.restart = build;
+
+  gridEl.addEventListener('click', function (e) {
+    var tile = e.target.closest('.tile');
+    if (!tile) return;
+    rotate(tile);
+  });
+
+  document.getElementById('restart').addEventListener('click', build);
+
+  build();
+})();
+</script>
+</body>
+</html>

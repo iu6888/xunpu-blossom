@@ -7,7 +7,7 @@
   'use strict';
 
   var API = '';
-  var state = { cart: null, product: null, variant: null, qty: 1, view: 'cart', busy: false, contact: null, customer: null, authReady: null };
+  var state = { cart: null, product: null, variant: null, qty: 1, view: 'cart', busy: false, contact: null, customer: null, authReady: null, checkoutCoupon: null };
 
   var els = {};
   var doc = document;
@@ -434,18 +434,92 @@
   /* 结算                                                              */
   /* ---------------------------------------------------------------- */
 
+  function latestCouponCode() {
+    try {
+      var all = JSON.parse(localStorage.getItem('xb-coupons') || '[]');
+      if (!Array.isArray(all)) return '';
+      for (var i = 0; i < all.length; i++) {
+        if (all[i] && all[i].code) return String(all[i].code);
+      }
+    } catch (e) { /* 隐私模式忽略 */ }
+    return '';
+  }
+
+  function couponDiscountCents() {
+    return state.checkoutCoupon ? (Number(state.checkoutCoupon.discountCents) || 0) : 0;
+  }
+
+  function payableCents() {
+    if (!state.cart) return 0;
+    return Math.max(0, (Number(state.cart.totalCents) || 0) - couponDiscountCents());
+  }
+
+  function paintCheckoutTotals() {
+    var discount = couponDiscountCents();
+    var row = els.body.querySelector('#xb-discount-row');
+    var amount = els.body.querySelector('#xb-discount');
+    var payable = els.body.querySelector('#xb-payable');
+    var submit = els.foot.querySelector('[data-submit]');
+    if (row) row.hidden = discount <= 0;
+    if (amount) amount.textContent = '-' + money(discount / 100);
+    if (payable) payable.textContent = money(payableCents() / 100);
+    if (submit && !submit.disabled) submit.textContent = '提交订单 · ' + money(payableCents() / 100);
+  }
+
+  function checkoutCouponNote(text, kind) {
+    var note = els.body.querySelector('#xb-coupon-note');
+    if (!note) return;
+    note.className = 'xb-coupon-note' + (kind ? ' is-' + kind : '');
+    note.textContent = text;
+  }
+
+  function checkCoupon() {
+    var input = els.body.querySelector('#xb-coupon-code');
+    if (!input) return Promise.resolve();
+    var code = String(input.value || '').trim().toUpperCase();
+
+    if (!code) {
+      state.checkoutCoupon = null;
+      paintCheckoutTotals();
+      checkoutCouponNote('通关游戏可得 ¥5 券，满 ¥59 可用', '');
+      return Promise.resolve();
+    }
+
+    var btn = els.body.querySelector('[data-coupon-check]');
+    if (btn) { btn.disabled = true; btn.textContent = '核对中…'; }
+    checkoutCouponNote('正在核对券码…', '');
+
+    return api('/api/coupons/check', {
+      method: 'POST',
+      body: { couponCode: code, itemsTotalCents: state.cart.itemsTotalCents }
+    }).then(function (d) {
+      state.checkoutCoupon = d;
+      paintCheckoutTotals();
+      checkoutCouponNote('已抵扣 ' + d.discountText + '，用券后应付 ' + d.totalAfterText, 'ok');
+    }).catch(function (err) {
+      state.checkoutCoupon = null;
+      paintCheckoutTotals();
+      checkoutCouponNote(err.message, 'warn');
+    }).finally(function () {
+      if (btn) { btn.disabled = false; btn.textContent = '核对券码'; }
+    });
+  }
+
   function showCheckout() {
     state.view = 'checkout';
+    state.checkoutCoupon = null;
     if (!state.cart || !state.cart.items.length) return;
 
     var c = state.contact || {};
+    var savedCode = latestCouponCode();
 
     els.body.innerHTML =
       '<p class="xb-error" hidden></p>' +
-      '<div class="xb-sums" style="margin-bottom:16px">' +
+      '<div class="xb-sums" id="xb-checkout-sums" style="margin-bottom:16px">' +
         '<div class="xb-sums__row"><span>' + state.cart.count + ' 件商品</span><span>' + state.cart.itemsTotalText + '</span></div>' +
         '<div class="xb-sums__row"><span>运费</span><span>' + (state.cart.shippingFeeCents ? state.cart.shippingFeeText : '免运费') + '</span></div>' +
-        '<div class="xb-sums__row xb-sums__row--total"><span>应付</span><strong>' + state.cart.totalText + '</strong></div>' +
+        '<div class="xb-sums__row xb-sums__row--discount" id="xb-discount-row" hidden><span>优惠券</span><span id="xb-discount">-¥0</span></div>' +
+        '<div class="xb-sums__row xb-sums__row--total"><span>应付</span><strong id="xb-payable">' + state.cart.totalText + '</strong></div>' +
       '</div>' +
       '<div class="xb-form">' +
         '<div class="xb-form__row">' +
@@ -453,6 +527,11 @@
           '<label class="xb-field"><span>手机号</span><input name="phone" inputmode="numeric" autocomplete="tel" required></label>' +
         '</div>' +
         '<label class="xb-field xb-field--full"><span>收货地址</span><input name="address" autocomplete="street-address" placeholder="省 / 市 / 区 / 详细地址" required></label>' +
+        '<label class="xb-field xb-field--full"><span>优惠券（可选）</span><input name="couponCode" id="xb-coupon-code" maxlength="20" autocomplete="off" placeholder="XBXXXXXXXX" value="' + esc(savedCode) + '"></label>' +
+        '<div class="xb-coupon-row">' +
+          '<button type="button" class="xb-btn xb-btn--sm" data-coupon-check>核对券码</button>' +
+          '<span class="xb-coupon-note" id="xb-coupon-note">通关游戏可得 ¥5 券，满 ¥59 可用</span>' +
+        '</div>' +
         '<label class="xb-field xb-field--full"><span>备注（可选）</span><textarea name="note" rows="2" placeholder="祝福卡文案、指定配色、期望送达时间"></textarea></label>' +
       '</div>' +
       '<p class="xb-hint">提交后我们会在 1 个工作日内与你确认。' + (c.hours ? ' 客服时间：' + esc(c.hours) : '') + '</p>';
@@ -475,6 +554,29 @@
       render();
     });
     els.foot.querySelector('[data-submit]').addEventListener('click', submitOrder);
+    els.body.querySelector('[data-coupon-check]').addEventListener('click', checkCoupon);
+    els.body.querySelector('#xb-coupon-code').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); checkCoupon(); }
+    });
+
+    // 有本机券码就带出来并自动核一次；登录顾客则取最近一张可用券
+    if (savedCode) {
+      checkCoupon();
+    } else if (state.customer) {
+      api('/api/coupons').then(function (d) {
+        var list = (d && d.items) || [];
+        for (var i = 0; i < list.length; i++) {
+          if (list[i].status === 'active' && state.cart.itemsTotalCents >= list[i].minSpendCents) {
+            var input = els.body.querySelector('#xb-coupon-code');
+            if (input && !input.value) {
+              input.value = list[i].code;
+              checkCoupon();
+            }
+            break;
+          }
+        }
+      }).catch(function () { /* 没有券就保持空 */ });
+    }
   }
 
   function submitOrder() {
@@ -502,6 +604,7 @@
       body: {
         customer: { name: name, phone: phone, address: address },
         note: note,
+        couponCode: (form.querySelector('[name="couponCode"]') ? form.querySelector('[name="couponCode"]').value.trim() : ''),
         channel: 'web',
         fulfillment: 'express',
         idempotencyKey: 'web-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
@@ -513,7 +616,7 @@
     }).catch(function (err) {
       showFormError(errBox, err.message);
       btn.disabled = false;
-      btn.textContent = '提交订单 · ' + (state.cart ? state.cart.totalText : '');
+      btn.textContent = '提交订单 · ' + money(payableCents() / 100);
     }).finally(function () {
       state.busy = false;
     });
@@ -533,6 +636,9 @@
         '<p>我们会在 1 个工作日内与你确认。<br>请保存订单号，可随时查询进度。</p>' +
         '<div class="xb-state__no">' + esc(order.orderNo) + '</div>' +
         '<p class="small">合计 ' + esc(order.totalText) + ' · 满 ¥299 免运费</p>' +
+        (order.discountCents > 0
+          ? '<p class="small">已用券 ' + esc(order.couponCode || '') + ' 抵扣 ' + esc(order.discountText) + '</p>'
+          : '') +
       '</div>';
     els.foot.innerHTML = '<button type="button" class="xb-btn xb-btn--primary" data-done>继续逛逛</button>';
     els.foot.querySelector('[data-done]').addEventListener('click', function () {

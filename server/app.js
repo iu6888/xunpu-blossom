@@ -22,6 +22,7 @@ require('./routes/account')(router);
 require('./routes/orders')(router);
 require('./routes/inquiries')(router);
 require('./routes/games')(router);
+require('./routes/coupons')(router);
 require('./routes/auth')(router);
 require('./routes/admin')(router);
 
@@ -82,7 +83,7 @@ function applyCors(req, res) {
   res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PATCH,PUT,DELETE,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Cart-Token, Idempotency-Key, X-Order-Token');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Cart-Token, Idempotency-Key, X-Order-Token, X-Coupon-Codes');
   res.setHeader('Access-Control-Max-Age', '600');
   res.setHeader('Vary', 'Origin');
 }

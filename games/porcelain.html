@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>德化瓷 · 花间游戏｜蟳埔花事</title>
+<meta name="description" content="德化白瓷拉坯：看准火候定坯，五次成器。通关可领花间游戏券，把泉州的瓷与花一起带走。">
+<link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
+<style>
+  .wheel-wrap{display:flex;gap:20px;align-items:center}
+  .wheel{
+    flex:none;width:44%;max-width:200px;aspect-ratio:1;
+    background:radial-gradient(circle at 50% 42%,#FFFDF8,#EFE6D4 70%,#E2D3B8);
+    border:1px solid var(--line);display:grid;place-items:center;
+  }
+  .wheel svg{width:96%;height:96%}
+  .clay{fill:#C9A78A;stroke:#9A765C;stroke-width:1.2}
+  .clay-ring{fill:none;stroke:#B08F72;stroke-width:1}
+  .wheel-base{fill:#8A8074;opacity:.35}
+  .kiln{flex:1;min-width:0}
+  .kiln__head{display:flex;justify-content:space-between;align-items:baseline;font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft);margin-bottom:8px}
+  .kiln__head b{font-family:Georgia,serif;color:var(--red);font-weight:400;font-size:.92rem}
+  .gauge{position:relative;height:52px;border:1px solid var(--line);background:var(--paper);overflow:hidden}
+  .gauge__zone{position:absolute;top:0;bottom:0;background:rgba(125,140,107,.24);border-left:1px solid rgba(76,97,87,.45);border-right:1px solid rgba(76,97,87,.45);transition:left .2s,width .2s}
+  .gauge__mid{position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(36,31,26,.08)}
+  .gauge__mark{position:absolute;top:-4px;bottom:-4px;left:50%;width:3px;margin-left:-1.5px;background:var(--red);box-shadow:0 0 8px rgba(168,52,43,.7)}
+  .gauge__labels{position:absolute;left:0;right:0;bottom:2px;display:flex;justify-content:space-between;padding:0 5px;font-size:.55rem;letter-spacing:.1em;color:var(--ink-soft);opacity:.65}
+  .kiln p{margin-top:12px;font-size:.72rem;line-height:1.9;letter-spacing:.06em;color:var(--ink-soft)}
+  .kiln p b{color:var(--red);font-family:Georgia,serif;font-weight:400}
+  .fire{display:flex;gap:8px;margin-top:14px}
+  .fire .btn{flex:1}
+  .tip{margin-top:12px;min-height:2.6em;font-size:.74rem;line-height:1.9;letter-spacing:.08em;color:var(--ink-soft)}
+  .tip.is-warn{color:var(--red)}
+  .best{margin-top:10px;padding-top:12px;border-top:1px solid var(--line);font-size:.7rem;letter-spacing:.14em;color:var(--ink-soft)}
+  .win-actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+  @media (max-width:460px){
+    .wheel-wrap{flex-direction:column;align-items:stretch}
+    .wheel{width:100%;max-width:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="site-bar">
+    <a href="../index.html">← 蟳埔花事</a>
+    <span class="site-bar__right">
+      <a href="index.html">游戏大厅</a>
+      <a href="index.html#board">花间榜</a>
+    </span>
+  </div>
+
+  <header>
+    <div class="eyebrow">09 · 花间游戏</div>
+    <h1>德化<br><span class="stroke">拉坯</span></h1>
+    <div class="sub">Shape the white porcelain</div>
+  </header>
+
+  <hr class="rule">
+
+  <div class="panel">
+    <div class="stat-bar">
+      <span>用时 <b id="time">0:00</b></span>
+      <span>失手 <b id="miss">0</b></span>
+      <span>成器 <b id="made">0 / 5</b></span>
+    </div>
+
+    <div class="wheel-wrap">
+      <div class="wheel">
+        <svg viewBox="0 0 200 200" id="wheel" aria-label="拉坯轮盘">
+          <ellipse class="wheel-base" cx="100" cy="166" rx="72" ry="15"/>
+          <ellipse cx="100" cy="160" rx="62" ry="12" fill="#D8C7AC" stroke="#B8A588"/>
+          <g id="vessel"></g>
+          <circle cx="100" cy="146" r="34" fill="none" stroke="rgba(168,52,43,.18)" stroke-dasharray="2 5"/>
+        </svg>
+      </div>
+
+      <div class="kiln">
+        <div class="kiln__head">
+          <span>火候 · 定坯</span>
+          <span>第 <b id="level">1</b> 次</span>
+        </div>
+        <div class="gauge" id="gauge">
+          <div class="gauge__zone" id="zone"></div>
+          <div class="gauge__mid"></div>
+          <div class="gauge__mark" id="mark"></div>
+          <div class="gauge__labels"><span>收</span><span>正</span><span>放</span></div>
+        </div>
+        <p>红线走进绿色火候区时按「定坯」。每成一次，坯体长高一层，火候区也会变窄。</p>
+        <div class="fire">
+          <button class="btn" id="start" type="button">转起轮盘</button>
+          <button class="btn ghost" id="restart" type="button">重来</button>
+        </div>
+      </div>
+    </div>
+
+    <p class="tip" id="tip">德化白瓷讲究「薄如纸、白如玉」。先转轮，再在对的火候定坯。</p>
+    <p class="best" id="best">成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）</p>
+  </div>
+
+  <div class="panel board" data-board="porcelain" id="board">
+    <div class="board__head">
+      <div class="board__title">花间榜 · 德化瓷<small>Five pulls to a white vase</small></div>
+    </div>
+    <ol class="board__list"></ol>
+    <div class="board__foot"></div>
+  </div>
+
+  <footer class="footer">
+    蟳埔花事 · 花间游戏<br>
+    成绩记入花间榜 · 通关可领券（满 ¥59 减 ¥5）
+  </footer>
+</div>
+
+<div class="win-mask" id="win">
+  <div class="win-box">
+    <div class="w-eyebrow">五次成器</div>
+    <h2>白瓷初成</h2>
+    <p id="win-text"></p>
+    <p class="win-best" id="win-best"></p>
+    <div class="score-form" id="score-form" hidden>
+      <label class="score-label" for="score-name">留个昵称，记上花间榜</label>
+      <div class="score-row">
+        <input id="score-name" maxlength="12" autocomplete="nickname" placeholder="例如：窑火小满">
+        <button class="btn" id="score-submit" type="button">上榜</button>
+      </div>
+    </div>
+    <p class="score-hint" id="score-hint"></p>
+    <div class="win-actions">
+      <button class="btn" type="button" onclick="restart()">再拉一坯</button>
+      <a class="btn ghost" href="index.html">回游戏大厅</a>
+    </div>
+  </div>
+</div>
+
+<script src="assets/leaderboard.js?v=20261121"></script>
+<script>
+(function () {
+  'use strict';
+
+  var TOTAL = 5;
+  var timeEl = document.getElementById('time');
+  var missEl = document.getElementById('miss');
+  var madeEl = document.getElementById('made');
+  var levelEl = document.getElementById('level');
+  var zoneEl = document.getElementById('zone');
+  var markEl = document.getElementById('mark');
+  var vesselEl = document.getElementById('vessel');
+  var startBtn = document.getElementById('start');
+  var restartBtn = document.getElementById('restart');
+  var tipEl = document.getElementById('tip');
+  var bestEl = document.getElementById('best');
+  var winEl = document.getElementById('win');
+  var winText = document.getElementById('win-text');
+  var winBest = document.getElementById('win-best');
+
+  var state = {
+    made: 0, misses: 0, seconds: 0, timer: null,
+    running: false, started: false, won: false,
+    startAt: 0, period: 1700, target: 50, width: 30,
+    raf: 0, epoch: 0
+  };
+
+  function fmt(sec) {
+    var s = Math.max(0, Math.round(sec));
+    return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+  }
+
+  function randTarget() {
+    return 24 + Math.random() * 52;
+  }
+
+  function setTarget() {
+    state.target = randTarget();
+    state.width = Math.max(12, 30 - state.made * 3.2);
+    zoneEl.style.left = (state.target - state.width / 2).toFixed(2) + '%';
+    zoneEl.style.width = state.width.toFixed(2) + '%';
+  }
+
+  function updateStats() {
+    timeEl.textContent = fmt(state.seconds);
+    missEl.textContent = String(state.misses);
+    madeEl.textContent = state.made + ' / ' + TOTAL;
+    levelEl.textContent = String(Math.min(TOTAL, state.made + 1));
+  }
+
+  function renderVessel() {
+    var n = state.made;
+    var s = '';
+    // 底盘
+    s += '<ellipse class="clay" cx="100" cy="146" rx="' + (34 + n * 4) + '" ry="8"/>';
+    // 由下往上叠五层，越往上收口
+    for (var i = 0; i < n; i++) {
+      var y = 138 - i * 17;
+      var rx = 28 + Math.sin((i + 1) * 1.15) * 13 + i * 2.2;
+      var ry = 8 - i * 0.5;
+      s += '<ellipse class="clay" cx="100" cy="' + y + '" rx="' + rx.toFixed(1) + '" ry="' + ry.toFixed(1) + '"/>';
+      if (i < n - 1) {
+        s += '<path class="clay-ring" d="M' + (100 - rx).toFixed(1) + ' ' + y +
+          ' C' + (100 - rx - 2).toFixed(1) + ' ' + (y - 9) + ' ' +
+          (100 - rx + 1).toFixed(1) + ' ' + (y - 15) + ' ' +
+          (100 - rx + 3).toFixed(1) + ' ' + (y - 17) + '"/>';
+      }
+    }
+    if (n > 0) {
+      // 瓶口
+      var topY = 138 - (n - 1) * 17;
+      s += '<ellipse class="clay" cx="100" cy="' + (topY - 8) + '" rx="' + (10 + (5 - n) * 1.4) + '" ry="5" fill="#EFE3D2"/>';
+    }
+    vesselEl.innerHTML = s;
+  }
+
+  function positionAt(now) {
+    var t = (now - state.startAt) / state.period;
+    return 50 + 46 * Math.sin(t * Math.PI * 2);
+  }
+
+  function tick(now) {
+    if (!state.running) return;
+    var pos = positionAt(now);
+    markEl.style.left = pos.toFixed(2) + '%';
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function startTimer() {
+    if (state.started || state.won) return;
+    state.started = true;
+    state.timer = setInterval(function () {
+      state.seconds++;
+      timeEl.textContent = fmt(state.seconds);
+    }, 1000);
+  }
+
+  function stopTimer() {
+    clearInterval(state.timer);
+    state.timer = null;
+  }
+
+  function say(text, warn) {
+    tipEl.textContent = text;
+    tipEl.classList.toggle('is-warn', !!warn);
+  }
+
+  function startWheel() {
+    if (state.won) return;
+    startTimer();
+    state.started = true;
+    state.running = true;
+    state.startAt = performance.now();
+    state.period = 1700;
+    state.made = 0;
+    state.misses = 0;
+    state.raf = requestAnimationFrame(tick);
+    setTarget();
+    renderVessel();
+    updateStats();
+    startBtn.disabled = true;
+    startBtn.textContent = '轮盘转着';
+    say('红线进绿区时按空格或点「定坯」。', false);
+  }
+
+  function press() {
+    if (!state.running || state.won) return;
+    var pos = positionAt(performance.now());
+    var half = state.width / 2;
+    var good = Math.abs(pos - state.target) <= half;
+
+    if (!good) {
+      state.misses++;
+      updateStats();
+      say('火候差了一点，坯体没定住。再来。', true);
+      return;
+    }
+
+    state.made++;
+    updateStats();
+    renderVessel();
+
+    if (state.made >= TOTAL) {
+      win();
+      return;
+    }
+
+    state.period = Math.max(620, 1700 - state.made * 210);
+    state.startAt = performance.now();
+    setTarget();
+    say('第 ' + state.made + ' 层定住了，坯体又高了一点。', false);
+  }
+
+  function win() {
+    state.won = true;
+    state.running = false;
+    stopTimer();
+    cancelAnimationFrame(state.raf);
+    startBtn.disabled = true;
+    winText.textContent = '五次定坯，白瓷成器，用时 ' + fmt(state.seconds) + '，失手 ' + state.misses + ' 次。';
+    winBest.textContent = '成绩记入花间榜，通关可领 ¥5 券';
+    setTimeout(function () {
+      winEl.classList.add('show');
+      XBGame.finish({ game: 'porcelain', seconds: state.seconds, moves: state.misses });
+    }, 520);
+  }
+
+  window.restart = function () {
+    state.epoch++;
+    cancelAnimationFrame(state.raf);
+    stopTimer();
+    state.made = 0;
+    state.misses = 0;
+    state.seconds = 0;
+    state.running = false;
+    state.started = false;
+    state.won = false;
+    startBtn.disabled = false;
+    startBtn.textContent = '转起轮盘';
+    markEl.style.left = '50%';
+    updateStats();
+    renderVessel();
+    setTarget();
+    winEl.classList.remove('show');
+    winBest.textContent = '';
+    var sf = document.getElementById('score-form');
+    var sh = document.getElementById('score-hint');
+    if (sf) sf.hidden = true;
+    if (sh) { sh.textContent = ''; sh.className = 'score-hint'; }
+    say('德化白瓷讲究「薄如纸、白如玉」。先转轮，再在对的火候定坯。', false);
+  };
+
+  startBtn.addEventListener('click', startWheel);
+  restartBtn.addEventListener('click', function () { window.restart(); });
+  document.getElementById('gauge').addEventListener('click', press);
+  document.getElementById('wheel').addEventListener('click', press);
+  document.addEventListener('keydown', function (e) {
+    if (e.code === 'Space' || e.key === ' ') {
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      e.preventDefault();
+      if (state.running) press();
+      else if (!state.won && !state.started) startWheel();
+    }
+  });
+
+  updateStats();
+  renderVessel();
+  setTarget();
+})();
+</script>
+</body>
+</html>

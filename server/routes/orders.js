@@ -8,6 +8,7 @@ const { badRequest, notFound, conflict, forbidden } = require('../lib/http');
 const { resolveCart } = require('../lib/session');
 const { orderNumber, accessToken, dayKey } = require('../lib/security');
 const { orderOut, money } = require('../lib/format');
+const coupons = require('../lib/coupons');
 
 const MAX_LINES = 20;
 
@@ -74,6 +75,7 @@ module.exports = function register(router) {
     const note = v.optStr(body.note, '备注', { max: 300 }) || null;
     const channel = v.oneOf(body.channel, '来源', ['web', 'store', 'airport', 'live', 'wechat', 'phone'], 'web');
     const idemKey = v.optStr(body.idempotencyKey || ctx.headers['idempotency-key'], '幂等键', { max: 80 }) || null;
+    const couponCode = v.optStr(body.couponCode, '券码', { max: 20 }) || null;
     const db = getDb();
 
     // 幂等：同一 key 直接返回已有订单，避免重复下单
@@ -105,6 +107,22 @@ module.exports = function register(router) {
     const day = dayKey(now, config.timezone);
 
     const created = db.tx(() => {
+      // 券码在事务内校验并核销：校验失败会连同订单一起回滚
+      let discount = 0;
+      let couponRow = null;
+      let normalizedCoupon = null;
+      if (couponCode) {
+        const checked = coupons.inspect(db, couponCode, {
+          itemsTotalCents: itemsTotal,
+          customerId: ctx.customer ? ctx.customer.id : null,
+          now: now.getTime()
+        });
+        couponRow = checked.row;
+        discount = checked.discountCents;
+        normalizedCoupon = couponRow.code;
+      }
+
+      const totalCents = Math.max(0, totals.totalCents - discount);
       const seq = db.nextCounter(`order:${day}`);
       const no = orderNumber(seq, now, config.timezone);
       const token = accessToken();
@@ -112,9 +130,9 @@ module.exports = function register(router) {
       const res = db.run(
         `INSERT INTO orders
           (order_no, customer_id, access_token, customer_name, phone, email, province, city, district, address,
-           note, channel, fulfillment, idem_key, items_total, shipping_fee, total,
+           note, channel, fulfillment, idem_key, coupon_code, discount, items_total, shipping_fee, total,
            status, payment, day, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'offline', ?, ?, ?)`,
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'offline', ?, ?, ?)`,
         no,
         ctx.customer ? ctx.customer.id : null,
         token,
@@ -129,15 +147,18 @@ module.exports = function register(router) {
         channel,
         customer.fulfillment,
         idemKey,
+        normalizedCoupon,
+        discount,
         itemsTotal,
         totals.shippingFeeCents,
-        totals.totalCents,
+        totalCents,
         day,
         nowIso,
         nowIso
       );
 
       const orderId = res.lastInsertRowid;
+      if (couponRow) coupons.markUsed(db, couponRow.id, orderId, nowIso);
       for (const line of lines) {
         db.run(
           `INSERT INTO order_items
@@ -178,7 +199,7 @@ module.exports = function register(router) {
     return {
       ...orderOut(row, itemMap.get(row.id) || []),
       accessToken: created.token,
-      payTip: `订单已提交，请在 24 小时内完成支付。合计 ${money(row.total)}，满 ${money(config.freeShippingThresholdCents)} 免运费。`
+      payTip: `订单已提交，请在 24 小时内完成支付。合计 ${money(row.total)}${row.discount ? `（已用券抵扣 ${money(row.discount)}）` : ''}，满 ${money(config.freeShippingThresholdCents)} 免运费。`
     };
   });
 
@@ -219,6 +240,12 @@ module.exports = function register(router) {
 
     db.tx(() => {
       db.run("UPDATE orders SET status = 'cancelled', updated_at = ? WHERE id = ?", new Date().toISOString(), row.id);
+      // 取消订单后把券退回，过期券会由 effectiveStatus 自动显示为已过期
+      db.run(
+        "UPDATE coupons SET status = 'active', used_at = NULL, order_id = NULL WHERE order_id = ? AND status = 'used' AND expires_at > ?",
+        row.id,
+        new Date().toISOString()
+      );
       const items = db.all('SELECT variant_id, qty FROM order_items WHERE order_id = ?', row.id);
       for (const it of items) {
         if (it.variant_id) db.run('UPDATE variants SET stock = stock + ? WHERE id = ?', it.qty, it.variant_id);

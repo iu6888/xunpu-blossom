@@ -3,32 +3,56 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>花间游戏 · 蟳埔花事｜三个小游戏与花间榜</title>
-<meta name="description" content="蟳埔花事的三个花间小游戏：九宫格拼图、花签配对、找不同。无需注册，成绩可登上花间榜。">
+<title>花间游戏 · 蟳埔花事｜九款小游戏与花间榜</title>
+<meta name="description" content="蟳埔花事的九款花间小游戏：拼图、翻卡片、找不同、簪花、配花、方巾纹样、南音节拍、花灯点灯、德化瓷拉坯。成绩记入花间榜，通关可领优惠券。">
 <link rel="icon" href="../assets/img/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="assets/common.css?v=20261118">
+<link rel="stylesheet" href="assets/common.css?v=20261121">
 <style>
-  .game-list{display:flex;flex-direction:column;gap:16px;margin-top:8px}
+  .band-label{
+    display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    margin:2px 0 10px;font-size:.7rem;letter-spacing:.3em;color:var(--red);
+  }
+  .band-label span{font-size:.66rem;letter-spacing:.1em;color:var(--ink-soft);font-family:Georgia,serif;font-style:italic}
+  .band-label+.game-list{margin-bottom:26px}
+  .g-tag{
+    font-size:.58rem;letter-spacing:.14em;color:var(--red);
+    border:1px solid rgba(168,52,43,.35);padding:1px 5px;margin-left:8px;vertical-align:2px;
+  }
+  .g-tag--new{background:var(--red);color:var(--cream);border-color:var(--red)}
+  .game-list{display:flex;flex-direction:column;gap:14px;margin-top:8px}
   .game-card{
-    display:flex;align-items:center;gap:20px;
+    display:flex;align-items:center;gap:18px;
     background:var(--cream);border:1px solid var(--line);
-    padding:22px 24px;text-decoration:none;color:var(--ink);
+    padding:19px 22px;text-decoration:none;color:var(--ink);
     transition:transform .3s var(--ease),box-shadow .3s var(--ease);
   }
   .game-card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(36,31,26,.08)}
   .game-card .g-num{
-    font-family:Georgia,serif;font-size:.75rem;letter-spacing:.2em;
+    font-family:Georgia,serif;font-size:.72rem;letter-spacing:.2em;
     color:var(--red);writing-mode:vertical-rl;
   }
-  .game-card .g-icon{width:56px;height:56px;flex:none}
+  .game-card .g-icon{width:52px;height:52px;flex:none}
   .game-card .g-body{flex:1;min-width:0}
-  .game-card h2{font-size:1.25rem;font-weight:400;letter-spacing:.16em;margin-bottom:6px}
-  .game-card p{font-size:.8rem;color:var(--ink-soft);letter-spacing:.06em;line-height:1.7}
+  .game-card h2{font-size:1.16rem;font-weight:400;letter-spacing:.16em;margin-bottom:5px}
+  .game-card p{font-size:.78rem;color:var(--ink-soft);letter-spacing:.05em;line-height:1.7}
   .game-card .g-best{
-    display:block;margin-top:6px;font-size:.7rem;letter-spacing:.12em;color:var(--gold);
+    display:block;margin-top:5px;font-size:.68rem;letter-spacing:.1em;color:var(--gold);
     font-family:Georgia,serif;
   }
   .game-card .g-arrow{font-family:Georgia,serif;color:var(--red);font-size:1.1rem}
+  .coupon-band{
+    margin:24px 0 0;padding:16px 18px;border:1px dashed rgba(168,52,43,.4);
+    background:rgba(201,162,74,.08);font-size:.74rem;line-height:1.9;letter-spacing:.06em;color:var(--ink-soft);
+  }
+  .coupon-band b{color:var(--red);font-weight:400}
+  .board__tabs{flex-wrap:wrap}
+  @media (max-width:480px){
+    .game-card{padding:16px;gap:13px}
+    .game-card .g-icon{width:44px;height:44px}
+    /* 九个标签在窄屏上占满整行，按三列排，避免被标题挤成一长条 */
+    .board__tabs{flex:0 0 100%;width:100%;gap:5px}
+    .board__tabs .tab{flex:1 1 calc(33.333% - 5px);padding:7px 2px;text-align:center}
+  }
 </style>
 </head>
 <body>
@@ -45,10 +69,12 @@
   <header>
     <div class="eyebrow">蟳埔花事 · 花韵文化</div>
     <h1>花间<br><span class="stroke">游戏</span></h1>
-    <div class="sub">Three little games in the garden</div>
+    <div class="sub">Nine little games in the garden</div>
   </header>
 
   <hr class="rule">
+
+  <p class="band-label">全部九款 <span>成绩记入花间榜 · 通关可领券</span></p>
 
   <div class="game-list">
 
@@ -63,7 +89,7 @@
       <div class="g-body">
         <h2>拼图</h2>
         <p>九宫格花冠，点击两块交换位置，复原头顶花园。</p>
-        <span class="g-best" data-best="puzzle"></span>
+        <span class="g-best" data-best="puzzle">正在读取榜首…</span>
       </div>
       <span class="g-arrow">→</span>
     </a>
@@ -78,7 +104,7 @@
       <div class="g-body">
         <h2>翻卡片</h2>
         <p>十六张花签，两两配对，考验你的记忆力。</p>
-        <span class="g-best" data-best="memory"></span>
+        <span class="g-best" data-best="memory">正在读取榜首…</span>
       </div>
       <span class="g-arrow">→</span>
     </a>
@@ -93,11 +119,112 @@
       <div class="g-body">
         <h2>找不同</h2>
         <p>两座花园，三处不同，眼疾手快找出来。</p>
-        <span class="g-best" data-best="spot"></span>
+        <span class="g-best" data-best="spot">正在读取榜首…</span>
       </div>
       <span class="g-arrow">→</span>
     </a>
 
+    <a class="game-card" href="zanhua.html">
+      <span class="g-num">04</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <circle cx="28" cy="34" r="14" fill="#2A221D"/>
+        <circle cx="28" cy="16" r="6" fill="#A8342B"/>
+        <circle cx="16" cy="22" r="5" fill="#E3C882"/>
+        <circle cx="40" cy="22" r="5" fill="#FBF7EF" stroke="#C9A24A" stroke-width="1.2"/>
+        <circle cx="17" cy="37" r="4" fill="#C4624E"/>
+        <circle cx="40" cy="37" r="4" fill="#E8B3A8"/>
+      </svg>
+      <div class="g-body">
+        <h2>簪花<span class="g-tag">蟳埔</span></h2>
+        <p>照花单把素馨、茉莉、含笑簪上发髻，复原一顶头顶花园。</p>
+        <span class="g-best" data-best="zanhua">正在读取榜首…</span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="market.html">
+      <span class="g-num">05</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <rect x="7" y="7" width="34" height="42" fill="#FBF7EF" stroke="#A8342B" stroke-width="1.5"/>
+        <path d="M14 17h14M14 24h14M14 31h9" stroke="#C9A24A" stroke-width="1.6"/>
+        <circle cx="38" cy="39" r="7.5" fill="#A8342B"/>
+      </svg>
+      <div class="g-body">
+        <h2>配花<span class="g-tag">花市</span></h2>
+        <p>花市清晨，照单配齐八束花：点错、点多都记一次出错。</p>
+        <span class="g-best" data-best="market">正在读取榜首…</span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="pattern.html">
+      <span class="g-num">06</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <g transform="rotate(8 18 18)"><rect x="7" y="7" width="19" height="19" fill="#7C231D"/></g>
+        <g transform="rotate(-7 39 18)"><rect x="31" y="8" width="17" height="17" fill="#C9A24A"/></g>
+        <g transform="rotate(5 18 39)"><rect x="8" y="30" width="17" height="17" fill="#A8342B"/></g>
+        <g transform="rotate(-9 39 39)"><rect x="31" y="31" width="18" height="18" fill="none" stroke="#C9A24A" stroke-width="1.6"/></g>
+      </svg>
+      <div class="g-body">
+        <h2>方巾纹样<span class="g-tag">半城红</span></h2>
+        <p>半城红方巾被切乱旋转，点一块转 90°，把纹样转回原样。</p>
+        <span class="g-best" data-best="pattern">正在读取榜首…</span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="nanyin.html">
+      <span class="g-num">07</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <rect x="7" y="9" width="42" height="38" fill="#FBF7EF" stroke="#A8342B" stroke-width="1.4"/>
+        <path d="M14 18h10M14 25h18M14 32h13" stroke="#C9A24A" stroke-width="1.5"/>
+        <text x="39" y="34" text-anchor="middle" font-size="15" fill="#A8342B">工</text>
+        <line x1="10" y1="42" x2="46" y2="42" stroke="#A8342B" stroke-width="1.6"/>
+      </svg>
+      <div class="g-body">
+        <h2>南音 · 节拍<span class="g-tag g-tag--new">新</span></h2>
+        <p>泉州南音工尺谱化作拍板，跟着金色拍线点准工尺字，四句奏完。</p>
+        <span class="g-best" data-best="nanyin">正在读取榜首…</span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="lantern.html">
+      <span class="g-num">08</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <line x1="28" y1="3" x2="28" y2="11" stroke="#8A8074" stroke-width="1.3"/>
+        <rect x="13" y="11" width="30" height="34" rx="15" fill="#A8342B" stroke="#C9A24A" stroke-width="1.4"/>
+        <path d="M13 23h30M13 36h30" stroke="#E3C882" stroke-width="1" opacity=".75"/>
+        <line x1="28" y1="45" x2="28" y2="52" stroke="#A8342B" stroke-width="1.3"/>
+      </svg>
+      <div class="g-body">
+        <h2>花灯 · 点灯<span class="g-tag g-tag--new">新</span></h2>
+        <p>泉州花灯六盏，记下亮灯顺序，再一盏盏点回去，三巡点完。</p>
+        <span class="g-best" data-best="lantern">正在读取榜首…</span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+    <a class="game-card" href="porcelain.html">
+      <span class="g-num">09</span>
+      <svg class="g-icon" viewBox="0 0 56 56" aria-hidden="true">
+        <ellipse cx="28" cy="47" rx="19" ry="4" fill="#D8C7AC" stroke="#B8A588"/>
+        <path d="M19 44c-5-6-4-15 1-19 2-2 2-5 1-7h14c-1 2-1 5 1 7 5 4 6 13 1 19z" fill="#FBF7EF" stroke="#A8342B" stroke-width="1.3"/>
+        <path d="M20 36h16" stroke="#C9A24A" stroke-width="1.2"/>
+      </svg>
+      <div class="g-body">
+        <h2>德化瓷 · 拉坯<span class="g-tag g-tag--new">新</span></h2>
+        <p>看准火候区定坯，五次成器，拉出一只德化白瓷瓶。</p>
+        <span class="g-best" data-best="porcelain">正在读取榜首…</span>
+      </div>
+      <span class="g-arrow">→</span>
+    </a>
+
+  </div>
+
+  <div class="coupon-band">
+    通关任意一局，服务端会发一张 <b>¥5 游戏券</b>：满 <b>¥59</b> 可用，领取后 <b>7 天</b>内有效。
+    同一游戏每天一张，游客与登录账号都记入花间榜；券码会出现在胜利弹窗，也能在「我的账户 → 我的券」里找回。
   </div>
 
   <div class="panel board" id="board" data-board="puzzle">
@@ -107,6 +234,12 @@
         <button class="tab is-active" type="button" data-tab="puzzle">拼图</button>
         <button class="tab" type="button" data-tab="memory">翻卡片</button>
         <button class="tab" type="button" data-tab="spot">找不同</button>
+        <button class="tab" type="button" data-tab="zanhua">簪花</button>
+        <button class="tab" type="button" data-tab="market">配花</button>
+        <button class="tab" type="button" data-tab="pattern">方巾纹样</button>
+        <button class="tab" type="button" data-tab="nanyin">南音</button>
+        <button class="tab" type="button" data-tab="lantern">花灯</button>
+        <button class="tab" type="button" data-tab="porcelain">德化瓷</button>
       </div>
     </div>
     <ol class="board__list"></ol>
@@ -115,14 +248,14 @@
 
   <footer class="footer">
     蟳埔花事 XUNPU BLOSSOM · 泉州<br>
-    纯前端小游戏 · 无需注册 · 成绩记入花间榜
+    九款花间小游戏 · 成绩记入花间榜 · 通关可领券
   </footer>
 
 </div>
 
-<script src="assets/leaderboard.js?v=20261118"></script>
+<script src="assets/leaderboard.js?v=20261121"></script>
 <script>
-/* 三张卡片上挂各自的最好成绩，让人一眼看到要破的纪录 */
+/* 九张卡片上挂各自的最好成绩，让人一眼看到要破的纪录 */
 (function () {
   fetch('/api/games/overview', { credentials: 'same-origin' })
     .then(function (r) { return r.json(); })
@@ -136,10 +269,12 @@
           el.textContent = '还没有人上榜';
           return;
         }
-        el.textContent = '榜首 ' + g.items[0].name + ' · ' + XBGame.fmt(g.items[0].seconds);
+        var top = g.items[0];
+        el.textContent = '榜首 ' + top.name + ' · ' + XBGame.fmt(top.seconds) +
+          (top.moves ? ' · ' + top.moves + (g.game === 'spot' ? ' 次误点' : ' 步') : '');
       });
     })
-    .catch(function () { /* 榜单读不到就不显示 */ });
+    .catch(function () { /* 榜单读不到就保持占位 */ });
 })();
 </script>
 </body>

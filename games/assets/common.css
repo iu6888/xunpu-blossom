@@ -167,3 +167,33 @@ h1 .stroke{color:transparent;-webkit-text-stroke:1px var(--red)}
 
 /* 胜利弹窗里的次要按钮与主按钮并排 */
 .win-box .btn.ghost{margin-top:0}
+
+
+/* ---------- 通关奖励券（胜利弹窗内） ---------- */
+.coupon-box{
+  display:block;margin:12px 0 4px;padding:11px 12px;
+  border:1px dashed rgba(168,52,43,.45);background:rgba(201,162,74,.08);
+  font-size:.72rem;line-height:1.9;letter-spacing:.06em;color:var(--ink-soft);
+  text-align:left;
+}
+.coupon-box b{color:var(--red);font-family:Georgia,serif;font-weight:400;font-size:.92rem}
+.coupon-box__tag{
+  display:inline-block;margin-right:7px;padding:0 5px;
+  background:var(--red);color:var(--cream);font-size:.6rem;letter-spacing:.16em;
+  vertical-align:1px;
+}
+.coupon-code{
+  display:inline-block;margin-top:4px;padding:2px 7px;
+  border:1px solid var(--line);background:var(--cream);
+  font-family:Georgia,serif;letter-spacing:.16em;color:var(--ink);
+}
+.coupon-copy{
+  margin-left:7px;padding:2px 7px;border:1px solid var(--line);background:transparent;
+  font-family:var(--serif);font-size:.66rem;letter-spacing:.1em;color:var(--red);cursor:pointer;
+}
+.coupon-copy:hover{border-color:var(--red)}
+.coupon-link{
+  margin-left:9px;font-size:.66rem;letter-spacing:.1em;color:var(--red);
+  border-bottom:1px solid rgba(168,52,43,.3);padding-bottom:1px;
+}
+.coupon-note{display:block;margin-top:4px;color:var(--ink-soft);font-size:.68rem}

@@ -136,6 +136,7 @@
     orders: ['订单', '按状态流转，支持导出对账'],
     products: ['商品', '价格、库存与上下架'],
     customers: ['客户', '已注册的顾客与消费汇总'],
+    coupons: ['优惠券', '花间游戏奖励券的发放、核销与作废'],
     inquiries: ['询价', '合作、定制、试戴与授权需求'],
     settings: ['设置', '站点文案、数据清理与账号安全']
   };
@@ -157,7 +158,7 @@
     $('#page-actions').innerHTML = '';
     const view$ = $('#view');
     view$.innerHTML = '<div class="empty">加载中…</div>';
-    ({ dashboard: renderDashboard, orders: renderOrders, products: renderProducts, customers: renderCustomers, inquiries: renderInquiries, settings: renderSettings }[view])()
+    ({ dashboard: renderDashboard, orders: renderOrders, products: renderProducts, customers: renderCustomers, coupons: renderCoupons, inquiries: renderInquiries, settings: renderSettings }[view])()
       .catch((ex) => {
         view$.innerHTML = `<div class="empty">${esc(ex.message)}</div>`;
       });
@@ -167,6 +168,7 @@
     view: 'dashboard',
     orderFilter: { status: '', q: '', from: '', to: '', page: 1 },
     customerFilter: { q: '', status: '', sort: 'newest', page: 1 },
+    couponFilter: { q: '', status: '', page: 1 },
     inquiryFilter: { status: '', type: '', page: 1 }
   };
 
@@ -1208,6 +1210,104 @@
       } catch (ex) {
         toast(ex.message, true);
       } finally {
+        btn.disabled = false;
+      }
+    });
+  }
+
+  /* ================================================================
+     优惠券
+     ================================================================ */
+
+  const COUPON_TAG = {
+    active: 'tag--confirmed', used: 'tag--completed',
+    expired: 'tag--spam', void: 'tag--cancelled'
+  };
+  const COUPON_LABEL = { active: '可用', used: '已使用', expired: '已过期', void: '已作废' };
+
+  async function renderCoupons() {
+    const f = state.couponFilter;
+    const params = new URLSearchParams();
+    if (f.q) params.set('q', f.q);
+    if (f.status) params.set('status', f.status);
+    params.set('page', String(f.page));
+    params.set('limit', '20');
+
+    const data = await api('/api/admin/coupons?' + params.toString());
+    const view$ = $('#view');
+
+    const rows = data.items.length ? data.items.map((c) => `
+      <tr>
+        <td class="small nowrap"><code>${esc(c.code)}</code></td>
+        <td class="num">${esc(c.amountText)}</td>
+        <td class="num">${esc(c.minSpendText)}</td>
+        <td class="small">${esc(c.gameLabel || '—')}</td>
+        <td class="small">${c.customer ? esc(c.customer.nickname) + '<div class="muted">' + esc(c.customer.phoneMasked) + '</div>' : '<span class="muted">游客</span>'}</td>
+        <td><span class="tag ${COUPON_TAG[c.status] || 'tag--cancelled'}">${COUPON_LABEL[c.status] || esc(c.status)}</span></td>
+        <td class="small muted nowrap">${timeText(c.expiresAt)}</td>
+        <td class="right nowrap">
+          ${c.status === 'active' ? `<button class="btn btn--sm btn--danger" data-void-coupon="${c.id}" data-code="${esc(c.code)}">作废</button>` : ''}
+        </td>
+      </tr>`).join('')
+      : `<tr><td colspan="8" class="tbl__empty">还没有券。顾客通关花间游戏后会自动发券。</td></tr>`;
+
+    view$.innerHTML = `<div id="coupons-root">
+      <div class="toolbar">
+        <div class="search"><input class="input" id="coupon-q" placeholder="券码 / 标题 / 昵称 / 手机号" value="${esc(f.q)}"></div>
+        <select class="input" id="coupon-status" style="max-width:148px">
+          <option value="">全部状态</option>
+          <option value="active" ${f.status === 'active' ? 'selected' : ''}>可用</option>
+          <option value="used" ${f.status === 'used' ? 'selected' : ''}>已使用</option>
+          <option value="expired" ${f.status === 'expired' ? 'selected' : ''}>已过期</option>
+          <option value="void" ${f.status === 'void' ? 'selected' : ''}>已作废</option>
+        </select>
+        <div class="toolbar__grow"></div>
+        <span class="small muted">共 ${data.total} 张 · 可用 ${data.stats.active} · 已用 ${data.stats.used} · 过期 ${data.stats.expired}</span>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table class="tbl">
+            <thead><tr>
+              <th>券码</th><th>面额</th><th>门槛</th><th>来源</th><th>领取人</th><th>状态</th><th>有效期至</th><th></th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="pager">
+          <span>第 ${data.page}/${data.pages} 页</span>
+          <div class="pager__btns">
+            <button class="btn btn--sm" id="coupon-prev" ${data.page <= 1 ? 'disabled' : ''}>上一页</button>
+            <button class="btn btn--sm" id="coupon-next" ${data.page >= data.pages ? 'disabled' : ''}>下一页</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+
+    $('#coupon-q').addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      f.q = e.target.value.trim();
+      f.page = 1;
+      goto('coupons');
+    });
+    $('#coupon-status').addEventListener('change', (e) => {
+      f.status = e.target.value;
+      f.page = 1;
+      goto('coupons');
+    });
+    $('#coupon-prev').addEventListener('click', () => { f.page = Math.max(1, f.page - 1); goto('coupons'); });
+    $('#coupon-next').addEventListener('click', () => { f.page += 1; goto('coupons'); });
+
+    $('#coupons-root').addEventListener('click', async (e) => {
+      const btn = e.target.closest('[data-void-coupon]');
+      if (!btn) return;
+      if (!window.confirm('作废券 ' + btn.dataset.code + '？作废后顾客无法再使用。')) return;
+      btn.disabled = true;
+      try {
+        await api('/api/admin/coupons/' + btn.dataset.voidCoupon + '/void', { method: 'POST', body: {} });
+        toast('券已作废');
+        goto('coupons');
+      } catch (ex) {
+        toast(ex.message, true);
         btn.disabled = false;
       }
     });

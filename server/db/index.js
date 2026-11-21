@@ -37,7 +37,9 @@ class Db {
       ['carts', 'customer_id', 'INTEGER'],
       ['orders', 'customer_id', 'INTEGER'],
       ['orders', 'fulfillment', "TEXT NOT NULL DEFAULT 'express'"],
-      ['orders', 'idem_key', 'TEXT']
+      ['orders', 'idem_key', 'TEXT'],
+      ['orders', 'discount', 'INTEGER NOT NULL DEFAULT 0'],
+      ['orders', 'coupon_code', 'TEXT']
     ];
 
     for (const [table, column, ddl] of additions) {
